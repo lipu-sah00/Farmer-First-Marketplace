@@ -1,0 +1,291 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="module\auth\auth.css" />
+</head>
+
+<body>
+    <div class="main-container">
+        <!-- ================= LEFT SIDE ================= -->
+        <div class="left-card">
+            <img src="../../assets/Thumbnail.webp" />
+            <h3 style="line-height:1.2;color:#166534;margin:0;">Welcome to Marketplace</h3>
+            <p style="margin-top:20px;font-size:18px;line-height:1.8;color:#4b5563;">
+                Connect farmers directly with customers and nearby collection
+                centres. Sell fresh crops, buy quality vegetables, fruits and grains,
+                and grow your farming business digitally.
+                Connecting rural farmers with fair market prices while delivering fresh farm produce directly to
+                customers.
+
+            </p>
+
+            <!-- Features -->
+
+            <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:35px;">
+                <div
+                    style="flex:1 1 220px;background:white;padding:18px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08);">
+
+                    <h3 style="margin:0;color:#16a34a;">
+                        🚜 Sell Crops
+                    </h3>
+
+                    <p style="color:#6b7280;">
+                        Publish your harvest and reach nearby buyers easily.
+                    </p>
+
+                    <div style="flex:1;min-width:120px;text-align:center;">
+                        <h2 style="margin:0;color:#16a34a;">15K+</h2>
+                        <p>Farmers</p>
+                    </div>
+                </div>
+
+
+                <div
+                    style="flex:1 1 220px;background:white;padding:18px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08);">
+
+                    <h3 style="margin:0;color:#16a34a;">
+                        🚜 Sell Crops
+                    </h3>
+
+                    <p style="color:#6b7280;">
+                        Publish your harvest and reach nearby buyers easily.
+                    </p>
+
+                    <div style="flex:1;min-width:120px;text-align:center;">
+                        <h2 style="margin:0;color:#16a34a;">15K+</h2>
+                        <p>Farmers</p>
+                    </div>
+                </div>
+
+                <div style="
+          flex:1 1 220px;
+          background:white;
+          padding:18px;
+          border-radius:12px;
+          box-shadow:0 4px 12px rgba(0,0,0,.08);
+        ">
+
+                    <h3 style="margin:0;color:#2563eb;">
+                        📍 Nearby Collection
+                    </h3>
+
+                    <p style="color:#6b7280;">
+                        Find the closest collection centres using your live location.
+                    </p>
+                    <div style="
+          flex:1;
+          min-width:120px;
+          text-align:center;
+        ">
+
+                        <h2 style="margin:0;color:#2563eb;">500+</h2>
+
+                        <p>Collection Centers</p>
+
+                    </div>
+
+                </div>
+
+                <div style="
+          flex:1 1 220px;
+          background:white;
+          padding:18px;
+          border-radius:12px;
+          box-shadow:0 4px 12px rgba(0,0,0,.08);
+        ">
+
+                    <h3 style="margin:0;color:#f59e0b;">
+                        💰 Better Earnings
+                    </h3>
+
+                    <p style="color:#6b7280;">
+                        Get fair prices and track your farming revenue.
+                    </p>
+                    <div style="
+          flex:1;
+          min-width:120px;
+          text-align:center;
+        ">
+
+                        <h2 style="margin:0;color:#f59e0b;">25K+</h2>
+
+                        <p>Customers</p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <!-- ================= RIGHT SIDE ================= -->
+
+        <div class="right-card">
+            <div class="login-box">
+                <div style="text-align:center;margin-bottom:20px;">
+                    <div style="font-size:60px;">🌾</div>
+                    <h2 style="margin:10px 0;color:#16a34a;">
+                        Farmer Market
+                    </h2>
+                    <p style="color:#6b7280;">
+                        Buy Fresh • Sell Fresh
+                    </p>
+                </div>
+                <!-- Login/Register Switch -->
+                <div class="auth-select">
+                    <button class="login-btn" type="button" (click)="authMode='login'"
+                        [style.background]="authMode==='login' ? '#16a34a' : 'transparent'"
+                        [style.color]="authMode==='login' ? '#ffffff' : '#374151'">
+                        Login
+                    </button>
+                    <button class="reg-btn" type="button" (click)="authMode='register'"
+                        [style.background]="authMode==='register' ? '#16a34a' : 'transparent'"
+                        [style.color]="authMode==='register' ? '#ffffff' : '#374151'">
+                        Register
+                    </button>
+                </div>
+
+                <h3 style="text-align:center;margin-bottom:20px;">
+                    {{ authMode === 'login' ? 'Welcome Back 👋' : 'Create New Account' }}
+                </h3>
+                <form (ngSubmit)="submitAuth()">
+                    @if(authMode==='register'){
+
+                    <input type="text" [(ngModel)]="authForm.name" name="name" placeholder="Full Name" style="
+          width:100%;
+          padding:12px;
+          margin-bottom:15px;
+          border:1px solid #d1d5db;
+          border-radius:8px;
+          box-sizing:border-box;
+        ">
+
+                    <input type="tel" [(ngModel)]="authForm.phone" name="phone" placeholder="Phone Number" style="
+          width:100%;
+          padding:12px;
+          margin-bottom:15px;
+          border:1px solid #d1d5db;
+          border-radius:8px;
+          box-sizing:border-box;
+        ">
+
+                    }
+
+                    <input type="email" [(ngModel)]="authForm.email" name="email" placeholder="Email Address" style="
+          width:100%;
+          padding:12px;
+          margin-bottom:15px;
+          border:1px solid #d1d5db;
+          border-radius:8px;
+          box-sizing:border-box;
+        ">
+
+                    <input type="password" [(ngModel)]="authForm.password" name="password" placeholder="Password" style="
+          width:100%;
+          padding:12px;
+          margin-bottom:15px;
+          border:1px solid #d1d5db;
+          border-radius:8px;
+          box-sizing:border-box;
+        ">
+
+                    @if(authMode==='register'){
+
+                    <input type="password" [(ngModel)]="authForm.confirmPassword" name="confirmPassword"
+                        placeholder="Confirm Password" style="
+          width:100%;
+          padding:12px;
+          margin-bottom:20px;
+          border:1px solid #d1d5db;
+          border-radius:8px;
+          box-sizing:border-box;
+        ">
+
+                    }
+
+                    <button type="submit" style="
+          width:100%;
+          padding:14px;
+          border:none;
+          border-radius:8px;
+          background:#16a34a;
+          color:white;
+          font-size:17px;
+          font-weight:bold;
+          cursor:pointer;
+        ">
+
+                        {{ authMode === 'login' ? 'Login' : 'Create Account' }}
+
+                    </button>
+
+                </form>
+
+                @if(authMessage){
+
+                <div style="
+        margin-top:20px;
+        padding:12px;
+        border-radius:8px;
+        background:#dcfce7;
+        color:#166534;
+        text-align:center;
+      ">
+
+                    {{ authMessage }}
+
+                </div>
+
+                }
+
+                <div style="
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        margin-top:25px;
+      ">
+
+                    @if(isLoggedIn){
+
+                    <button type="button" (click)="logout()" style="
+          padding:12px;
+          border:none;
+          border-radius:8px;
+          background:#ef4444;
+          color:white;
+          cursor:pointer;
+          font-weight:bold;
+        ">
+
+                        Logout
+
+                    </button>
+
+                    }
+
+                    <button type="button" (click)="farmerLogin(authMode)" style="
+          padding:12px;
+          border:none;
+          border-radius:8px;
+          background:#2563eb;
+          color:white;
+          cursor:pointer;
+          font-weight:bold;
+        ">
+
+                        👨‍🌾 Login as Farmer
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</body>
+
+</html>

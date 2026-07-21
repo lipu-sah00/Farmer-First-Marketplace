@@ -32,69 +32,37 @@ function updateHeader() {
 
 function renderView() {
     const viewMap = {
-        home: `
-      <section class="hero-card">
-        <p class="stat-pill">Fresh from local farms</p>
-        <h2>Welcome to Farmer First Marketplace</h2>
-        <p>Browse farm-fresh produce, manage your cart, and keep track of orders in one place.</p>
-        <div class="hero-grid">
-          <div>
-            <h3>Daily essentials</h3>
-            <p>Vegetables, fruits, dairy, and pantry staples delivered fast.</p>
-          </div>
-          <div>
-            <h3>Trusted farmers</h3>
-            <p>Support local growers and see the full journey from farm to door.</p>
-          </div>
-        </div>
-      </section>
-    `,
-        products: `
-      <section class="content-card">
-        <h2>Products</h2>
-        <p>Fresh stock from nearby farms is now available.</p>
-        <p><span class="stat-pill">Tomatoes</span><span class="stat-pill">Milk</span><span class="stat-pill">Eggs</span></p>
-      </section>
-    `,
-        cart: `
-      <section class="content-card">
-        <h2>Your Cart</h2>
-        <p>You have ${state.cartCount} items ready to checkout.</p>
-      </section>
-    `,
-        orders: `
-      <section class="content-card">
-        <h2>My Orders</h2>
-        <p>Your latest order was delivered this morning.</p>
-      </section>
-    `,
-        farmer: `
-      <section class="content-card">
-        <h2>Farmer onboarding</h2>
-        <p>Share your farm details and start selling products through the marketplace.</p>
-      </section>
-    `,
-        farmer_dashboard: `
-      <section class="content-card">
-        <h2>Farmer Dashboard</h2>
-        <p>Track sales, update stock, and manage your listings.</p>
-      </section>
-    `,
-        farmer_sell: `
-      <section class="content-card">
-        <h2>Sell Product</h2>
-        <p>Add a new listing for your harvest and reach your buyers.</p>
-      </section>
-    `,
-        auth: `
-      <section class="content-card">
-        <h2>Account</h2>
-        <p>You are currently signed out. Log in again to continue shopping.</p>
-      </section>
-    `,
+        home: 'module/buyer/home.html',
+        products: 'module/buyer/products.html',
+        cart: 'module/buyer/cart.html',
+        orders: 'module/buyer/orders.html',
+        farmer: 'module/farmer/farmer.html',
+        farmer_dashboard: 'module/farmer/farmer_dashboard.html',
+        farmer_sell: 'module/farmer/farmer_sell.html',
+        auth: 'module/auth/auth.html',
     };
 
-    pageContent.innerHTML = viewMap[state.activeView] || viewMap.home;
+    const pageToLoad = viewMap[state.activeView] || viewMap.home;
+
+    fetch(pageToLoad)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`Failed to load ${pageToLoad}`);
+            }
+
+            return response.text();
+        })
+        .then((html) => {
+            pageContent.innerHTML = html;
+        })
+        .catch(() => {
+            pageContent.innerHTML = `
+                <section class="content-card">
+                    <h2>Page unavailable</h2>
+                    <p>The selected section could not be loaded. Please try again.</p>
+                </section>
+            `;
+        });
 }
 
 function setView(view) {
