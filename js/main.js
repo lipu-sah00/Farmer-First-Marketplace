@@ -58,6 +58,7 @@ function renderView() {
             if (state.activeView === "auth") {
                 loadScript("js/auth.js", () => {
                     console.log('auth.js loaded');
+                    init();
                     if (footer != null) {
                         footer.style.display = 'none';
                     }
@@ -76,6 +77,11 @@ function renderView() {
         });
 }
 function loadScript(src, callback) {
+    if (document.querySelector(`script[src="${src}"]`)) {
+        callback?.();
+        return;
+    }
+
     const script = document.createElement("script");
     script.src = src;
     script.onload = callback;

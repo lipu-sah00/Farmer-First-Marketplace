@@ -1,0 +1,202 @@
+.admin-container {
+    min-height: 100vh;
+    background:
+        linear-gradient(rgba(255, 255, 255, .45), rgba(255, 255, 255, .45)),
+        url('../../assets/bg_field.png') center/100% 100% no-repeat;
+}
+
+.farmer-list-card {
+
+    background: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, .08);
+
+}
+
+.table-header {
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 15px;
+
+}
+
+.table-actions {
+
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+
+}
+
+.show-records {
+
+    font-weight: 600;
+
+}
+
+.show-records select {
+
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin: 0 5px;
+
+}
+
+#searchFarmer {
+
+    width: 260px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+
+}
+
+#searchFarmer:focus {
+
+    border-color: #2e7d32;
+
+}
+
+.table-wrapper {
+
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+
+}
+
+table {
+
+    width: 100%;
+    border-collapse: collapse;
+
+}
+
+thead {
+
+    background: #2e7d32;
+    color: #fff;
+
+}
+
+thead th {
+
+    position: sticky;
+    top: 0;
+    z-index: 5;
+
+}
+
+th,
+td {
+
+    padding: 14px;
+    text-align: left;
+    white-space: nowrap;
+
+}
+
+tbody {
+
+    display: block;
+    max-height: 500px;
+    overflow-y: auto;
+
+}
+
+thead,
+tbody tr {
+
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+
+}
+
+tbody tr:nth-child(even) {
+
+    background: #f8f8f8;
+
+}
+
+tbody tr:hover {
+
+    background: #eef8ef;
+
+}
+
+.status {
+
+    padding: 5px 12px;
+    border-radius: 50px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+
+}
+
+.active {
+
+    background: #2e7d32;
+
+}
+
+.inactive {
+
+    background: #d32f2f;
+
+}
+
+.edit-btn {
+
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+
+}
+
+.edit-btn:hover {
+
+    background: #0d5ab8;
+
+}
+
+@media(max-width:768px) {
+
+    .table-header {
+
+        flex-direction: column;
+        align-items: flex-start;
+
+    }
+
+    #searchFarmer {
+
+        width: 100%;
+
+    }
+
+    .table-wrapper {
+
+        overflow: auto;
+
+    }
+
+    table {
+
+        min-width: 900px;
+
+    }
+
+}
