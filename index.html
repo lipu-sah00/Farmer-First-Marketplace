@@ -1,43 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Farmer First Marketplace</title>
-    <link rel="stylesheet" href="css/main.css" />
-  </head>
 
-  <body>
-    <header class="site-header">
-      <a class="brand" href="#" data-view="home">
-        <span class="brand-mark">FF</span>
-        <span>Farmer First Marketplace</span>
-      </a>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Farmer First Marketplace</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
 
-      <button class="menu-btn" id="menuBtn" type="button" aria-label="Toggle navigation">☰</button>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#" data-view="home">
+      <span class="brand-mark">
+        <img src="/assets/logo.jpg" height="50px" width="50px" />
+      </span>
+      <span>Farmer First Marketplace</span>
+    </a>
 
-      <nav class="site-nav" id="mainNav" aria-label="Primary navigation">
-        <button class="nav-btn accent" type="button" data-view="farmer" data-buyer-nav="true">
-          Join us as a farmer
-        </button>
-        <button class="nav-btn" type="button" data-view="home" data-buyer-nav="true">Home</button>
-        <button class="nav-btn" type="button" data-view="products" data-buyer-nav="true">Products</button>
-        <button class="nav-btn" type="button" data-view="cart" data-buyer-nav="true" id="cartBtn">
-          Cart <span class="nav-pill" id="cartCountLabel">0</span>
-        </button>
-        <button class="nav-btn" type="button" data-view="orders" data-buyer-nav="true">My Orders</button>
-        <button class="nav-btn" type="button" data-view="farmer_dashboard" data-farmer-nav="true">Dashboard</button>
-        <button class="nav-btn" type="button" data-view="farmer_sell" data-farmer-nav="true">Sell Product</button>
-        <button class="nav-btn" type="button" id="authAction">Logout</button>
-      </nav>
-    </header>
+    <button class="menu-btn" id="menuBtn" type="button" aria-label="Toggle navigation">☰</button>
 
-    <main id="pageContent" class="page-shell"></main>
+    <nav class="site-nav" id="mainNav" aria-label="Primary navigation">
+      <button class="nav-btn accent" type="button" data-view="farmer" data-buyer-nav="true">
+        Join us as a farmer
+      </button>
+      <button class="nav-btn" type="button" data-view="home" data-buyer-nav="true">Home</button>
+      <button class="nav-btn" type="button" data-view="products" data-buyer-nav="true">Products</button>
+      <button class="nav-btn" type="button" data-view="cart" data-buyer-nav="true" id="cartBtn">
+        Cart <span class="nav-pill" id="cartCountLabel">0</span>
+      </button>
+      <button class="nav-btn" type="button" data-view="orders" data-buyer-nav="true">My Orders</button>
+      <button class="nav-btn" type="button" data-view="farmer_dashboard" data-farmer-nav="true">Dashboard</button>
+      <button class="nav-btn" type="button" data-view="farmer_sell" data-farmer-nav="true">Sell Product</button>
+      <button class="nav-btn" type="button" id="authAction">Logout</button>
+    </nav>
+  </header>
 
-    <footer class="site-footer">
-      <p style="color: green;font-weight: 600;">© 2026 Farmer First Marketplace. Fresh produce, trusted farmers, better delivery.</p>
-    </footer>
+  <main id="pageContent" class="page-shell"></main>
 
-    <script src="js/main.js"></script>
-  </body>
+
+  <script src="js/main.js"></script>
+  <!-- <script src="js/auth.js"></script> -->
+
+
+  <footer class="site-footer">
+    <p style="color: green;font-weight: 600;">© 2026 Farmer First Marketplace. Fresh produce, trusted farmers, better
+      delivery.</p>
+  </footer>
+
+
+</body>
+
 </html>

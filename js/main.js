@@ -1,5 +1,5 @@
 const state = {
-    activeView: 'home',
+    activeView: 'auth',
     isLoggedIn: true,
     userRole: 'buyer',
     cartCount: 2,
@@ -31,6 +31,7 @@ function updateHeader() {
 }
 
 function renderView() {
+    const footer = document.querySelector(".site-footer");
     const viewMap = {
         home: 'module/buyer/home.html',
         products: 'module/buyer/products.html',
@@ -54,6 +55,16 @@ function renderView() {
         })
         .then((html) => {
             pageContent.innerHTML = html;
+            if (state.activeView === "auth") {
+                loadScript("js/auth.js", () => {
+                    console.log('auth.js loaded');
+                    if (footer != null) {
+                        footer.style.display = 'none';
+                    }
+                });
+            } else {
+                // footer.style.display = 'block';
+            }
         })
         .catch(() => {
             pageContent.innerHTML = `
@@ -63,6 +74,12 @@ function renderView() {
                 </section>
             `;
         });
+}
+function loadScript(src, callback) {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = callback;
+    document.body.appendChild(script);
 }
 
 function setView(view) {
@@ -122,7 +139,7 @@ menuBtn.addEventListener('click', toggleMenu);
 authAction.addEventListener('click', userAuthManage);
 
 window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
+    if (window.innerWidth > 568) {
         closeMenu();
     }
 });
