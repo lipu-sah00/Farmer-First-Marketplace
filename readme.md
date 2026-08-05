@@ -13,7 +13,6 @@ Install the **Live Server** extension in Visual Studio Code.
 - **Name:** Live Server
 - **ID:** `ritwickdey.LiveServer`
 - **Version:** 5.7.10
-- **Publisher:** Ritwick Dey
 - **VS Marketplace:** https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer
 
 ---
@@ -53,3 +52,4 @@ readme.md
 - HTML5
 - CSS3
 - JavaScript (ES6)
+- Java
