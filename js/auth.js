@@ -70,20 +70,13 @@ function getAuthFormData() {
 
 
 const authForm = getAuthFormData();
-
 console.log(authForm);
-
-
-
 // Set initial state
 let init = () => {
     setAuthMode("login");
     animateText();
-
     const logout_btn = document.getElementById("logout_btn");
     if (isLoggedIn == false) {
         logout_btn.style.display = 'none';
     }
-
 }
-

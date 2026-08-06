@@ -167,7 +167,7 @@
                         Welcome Back 👋
                     </p>
                 </h3>
-                <form (ngSubmit)="submitAuth()">
+                <form id="authForm" class="auth-form" onsubmit="return false;">
                     <div class="registerFields">
                         <input class="login-input" type="text" id="name" name="name" placeholder="Full Name">
 
@@ -184,9 +184,9 @@
                         placeholder="Confirm Password" class="registerFields login-input">
                     <!-- </div> -->
 
-                    <button type="submit" class="loginFields login-btn-check">
+                    <button type="submit" class="loginFields login-btn-check" onclick="loginUser()">
                         Login </button>
-                    <button type="submit" class="registerFields login-btn-check">
+                    <button type="submit" class="registerFields login-btn-check" onclick="registerUser(event)">
                         Create Account
                     </button>
 

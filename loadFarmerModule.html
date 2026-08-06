@@ -2,110 +2,102 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="author" content="lipu">
-    <meta name="theme-color" content="#1976d2">
-    <meta http-equiv="refresh" content="5;url=mainModule.html">
-
-    <title>Farmer First Marketplace</title>
-    <link rel="stylesheet" href="css/aboutus.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=0.7" />
+  <title>Farmer First Marketplace</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="css/admin.css" />
 </head>
 
 <body>
+  <header class="site-header">
+    <a class="brand" href="#" data-view="home">
+      <span class="brand-mark">
+        <img src="/assets/logo.jpg" height="50px" width="50px" />
+      </span>
+      <span>Farmer First Marketplace</span>
+    </a>
 
-    <section class="about-page">
+    <button class="menu-btn" id="menuBtn" type="button" aria-label="Toggle navigation">☰</button>
 
-        <div class="about-hero">
-            <h1>🌱 About Farmer First Marketplace</h1>
-            <p>
-                Connecting Farmers Directly with Buyers for Fresh, Healthy, and Affordable Produce.
-            </p>
-        </div>
+    <nav class="site-nav" id="mainNav" aria-label="Primary navigation">
+      <button class="nav-btn accent" type="button" data-view="farmer" data-buyer-nav="true">
+        Join us as a farmer
+      </button>
+      <button class="nav-btn" type="button" data-view="home" data-buyer-nav="true">Home</button>
+      <button class="nav-btn" type="button" data-view="products" data-buyer-nav="true">Products</button>
+      <button class="nav-btn" type="button" data-view="cart" data-buyer-nav="true" id="cartBtn">
+        Cart <span class="nav-pill" id="cartCountLabel">0</span>
+      </button>
+      <button class="nav-btn" type="button" data-view="orders" data-buyer-nav="true">My Orders</button>
+      <button class="nav-btn" type="button" data-view="farmer_dashboard" data-farmer-nav="true">Dashboard</button>
+      <button class="nav-btn" type="button" data-view="farmer_sell" data-farmer-nav="true">Sell Product</button>
 
-        <div class="about-container">
 
-            <div class="about-card">
-                <h2>Who We Are</h2>
-                <p>
-                    Farmer First Marketplace is an online platform dedicated to empowering local
-                    farmers by helping them sell their fresh produce directly to customers without
-                    unnecessary middlemen. We believe every farmer deserves a fair price and every
-                    customer deserves fresh, high-quality food.
-                </p>
-            </div>
+      <!-- <button class="nav-btn" type="button" data-view="farmer_sell" data-admin-nav="true">2222</button>
+      <button class="nav-btn" type="button" data-view="farmer_sell" data-admin-nav="true">33333</button>
+      <button class="nav-btn" type="button" data-view="farmer_sell" data-admin-nav="true">44444</button> -->
 
-            <div class="about-card">
-                <h2>Our Mission</h2>
-                <p>
-                    Our mission is to build a trusted digital marketplace that supports farmers,
-                    promotes sustainable agriculture, and delivers fresh farm products directly to
-                    households across the country.
-                </p>
-            </div>
 
-            <div class="about-card">
-                <h2>What We Offer</h2>
+      <button class="nav-btn" type="button" id="authAction">Logout</button>
+    </nav>
+  </header>
 
-                <ul>
-                    <li>🥦 Fresh vegetables directly from farms</li>
-                    <li>🍎 Seasonal fruits</li>
-                    <li>🌾 Grains and pulses</li>
-                    <li>🥛 Dairy and organic products</li>
-                    <li>🚚 Fast and secure delivery</li>
-                    <li>💳 Safe online payments</li>
-                    <li>⭐ Verified farmer profiles</li>
-                </ul>
-            </div>
+  <main id="pageContent" class="page-shell"></main>
+  <script src="js/firebase.js" type="module"></script>
+  <script src="js/main.js"></script>
 
-            <div class="about-card">
-                <h2>Why Choose Us?</h2>
 
-                <div class="features">
-                    <div class="feature-box">
-                        <h3>👨‍🌾 Support Farmers</h3>
-                        <p>Farmers receive fair prices by selling directly to customers.</p>
-                    </div>
-
-                    <div class="feature-box">
-                        <h3>🥗 Fresh Products</h3>
-                        <p>Farm-fresh fruits and vegetables delivered quickly.</p>
-                    </div>
-
-                    <div class="feature-box">
-                        <h3>🔒 Secure Shopping</h3>
-                        <p>Safe payments and trusted order management.</p>
-                    </div>
-
-                    <div class="feature-box">
-                        <h3>🚛 Fast Delivery</h3>
-                        <p>Reliable doorstep delivery with live order tracking.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="about-card">
-                <h2>Our Vision</h2>
-
-                <p>
-                    We envision a future where every farmer can access digital markets with ease,
-                    improve their income, and create a stronger connection with consumers through
-                    transparency and trust.
-                </p>
-            </div>
-
-            <div class="about-card contact-card">
-                <h2>Contact Us</h2>
-
-                <p><strong>Email:</strong> support@farmerfirst.com</p>
-                <p><strong>Phone:</strong> +91 98765 43210</p>
-                <p><strong>Address:</strong> Bengaluru, Karnataka, India</p>
-            </div>
-
-        </div>
-
-    </section>
-
+  <footer class="site-footer">
+    <div class="footer-container">
+      <!-- About -->
+      <div class="footer-card">
+        <h2>🌾 Farmer First</h2>
+        <p>
+          Farmer First Marketplace connects farmers directly with buyers,
+          ensuring fair prices and fresh produce. Our mission is to empower
+          farmers while delivering healthy, high-quality agricultural products
+          to every home.
+        </p>
+      </div>
+      <!-- Contact -->
+      <div class="footer-card">
+        <h2>📞 Contact Us</h2>
+        <p>📧 support@farmerfirst.com</p>
+        <p>☎ +91 98765 43210</p>
+        <p>📍 Bengaluru, Karnataka, India</p>
+        <p>🕒 Mon - Sat : 9:00 AM - 7:00 PM</p>
+      </div>
+      <!-- Links -->
+      <div class="footer-card">
+        <h2>🔗 Quick Links</h2>
+        <a href="#">🏠 Home</a>
+        <a href="#">🛒 Products</a>
+        <a href="#">👨‍🌾 Farmers</a>
+        <a href="#">🚚 Delivery</a>
+        <a href="#">🔒 Privacy Policy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="social-icons">
+        <span>🌐</span>
+        <span>📘</span>
+        <span>📸</span>
+        <span>🐦</span>
+        <span>▶️</span>
+      </div>
+      <div class="footer-badges">
+        <span>🌱 100% Fresh</span>
+        <span>🚜 Trusted Farmers</span>
+        <span>🚚 Fast Delivery</span>
+      </div>
+      <p>
+        © 2026 <strong>Farmer First Marketplace</strong> |
+        Empowering Farmers • Delivering Freshness • Building Trust ❤️
+      </p>
+    </div>
+  </footer>
 </body>
 
 </html>
