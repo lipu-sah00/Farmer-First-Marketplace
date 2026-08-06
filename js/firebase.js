@@ -100,7 +100,7 @@ export async function registerUser(event) {
 // ======================
 // Login
 // ======================
-export async function login(email, password) {
+export async function login(email, password, role) {
     try {
         const userCredential = await signInWithEmailAndPassword(
             auth,
@@ -109,6 +109,22 @@ export async function login(email, password) {
         );
 
         console.log("Logged In:", userCredential.user);
+        if (role === 'farmer') {
+            state = {
+                activeView: 'farmer_dashboard',
+                isLoggedIn: true,
+                userRole: 'farmer',
+                isMenuOpen: false,
+            };
+        } else {
+            state = {
+                activeView: 'home',
+                isLoggedIn: true,
+                userRole: 'buyer',
+                isMenuOpen: false,
+            };
+        }
+        renderView('home');
         return userCredential.user;
     } catch (error) {
         console.error(error.code, error.message);
@@ -117,14 +133,14 @@ export async function login(email, password) {
 }
 
 // Wrapper used by inline onclick handlers in non-module HTML
-export async function loginUser(event) {
+export async function loginUser(event, role) {
     if (event && event.preventDefault) event.preventDefault();
     const form = document.getElementById("authForm");
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
 
     try {
-        const user = await login(data.email, data.password);
+        const user = await login(data.email, data.password, role);
         alert('Login successful. Welcome!');
         return user;
     } catch (error) {

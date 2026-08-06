@@ -16,78 +16,7 @@
                 </p>
 
             </div>
-            <!-- 
-            <div class="features">
 
-                <div class="feature-card green">
-
-                    <div class="feature-icon">🚜</div>
-
-                    <h3>Sell Crops</h3>
-
-                    <p>
-                        Publish your harvest and reach nearby buyers easily.
-                    </p>
-
-                    <div class="stats">
-                        <h2>15K+</h2>
-                        <span>Farmers</span>
-                    </div>
-
-                </div>
-
-                <div class="feature-card green">
-
-                    <div class="feature-icon">🌱</div>
-
-                    <h3>Smart Farming</h3>
-
-                    <p>
-                        Connect with buyers and increase your profits.
-                    </p>
-
-                    <div class="stats">
-                        <h2>10K+</h2>
-                        <span>Active Users</span>
-                    </div>
-
-                </div>
-
-                <div class="feature-card blue">
-
-                    <div class="feature-icon">📍</div>
-
-                    <h3>Nearby Collection</h3>
-
-                    <p>
-                        Find the nearest collection centres using live location.
-                    </p>
-
-                    <div class="stats">
-                        <h2>500+</h2>
-                        <span>Centers</span>
-                    </div>
-
-                </div>
-
-                <div class="feature-card orange">
-
-                    <div class="feature-icon">💰</div>
-
-                    <h3>Better Earnings</h3>
-
-                    <p>
-                        Get fair prices and track farming revenue.
-                    </p>
-
-                    <div class="stats">
-                        <h2>25K+</h2>
-                        <span>Customers</span>
-                    </div>
-
-                </div>
-
-            </div> -->
             <div class="features">
 
                 <div class="feature-card green">
@@ -184,7 +113,7 @@
                         placeholder="Confirm Password" class="registerFields login-input">
                     <!-- </div> -->
 
-                    <button type="submit" class="loginFields login-btn-check" onclick="loginUser()">
+                    <button type="submit" class="loginFields login-btn-check" onclick="loginUser(event)">
                         Login </button>
                     <button type="submit" class="registerFields login-btn-check" onclick="registerUser(event)">
                         Create Account
@@ -200,13 +129,20 @@
                     } -->
 
                 <div style="display:flex;flex-direction:column;gap:12px;margin-top:25px;">
-                    <button class="farmer-login" type="button" (click)="farmerLogin(authMode)">
+                    <button class="loginFields farmer-login" type="button" onclick="loginUser(event,'farmer')">
                         👨‍🌾 Login as Farmer
                     </button>
 
-                    <button class="loginFields logout-btn" id="logout_btn" type="button" (click)="logout()">
-                        Logout
+                    <button class="registerFields farmer-login" type="button" onclick="farmerRegister()">
+                        👨‍🌾 Register as Farmer
                     </button>
+
+
+                    
+
+                    <!-- <button class="loginFields logout-btn" id="logout_btn" type="button" (click)="logout()">
+                        Logout
+                    </button> -->
 
                 </div>
             </div>

@@ -1,6 +1,6 @@
-const state = {
+let state = {
     activeView: 'auth',
-    isLoggedIn: true,
+    isLoggedIn: false,
     userRole: 'buyer',
     cartCount: 2,
     isMenuOpen: false,
@@ -11,6 +11,27 @@ const nav = document.getElementById('mainNav');
 const menuBtn = document.getElementById('menuBtn');
 const cartCountLabel = document.getElementById('cartCountLabel');
 const authAction = document.getElementById('authAction');
+
+
+function showBuyerNav() {
+    document.querySelectorAll('[data-buyer-nav="true"]').forEach(btn => {
+        btn.style.display = 'block';
+    });
+
+    document.querySelectorAll('[data-farmer-nav="true"]').forEach(btn => {
+        btn.style.display = 'none';
+    });
+}
+function showFarmerNav() {
+    document.querySelectorAll('[data-farmer-nav="true"]').forEach(btn => {
+        btn.style.display = 'block';
+    });
+
+    document.querySelectorAll('[data-buyer-nav="true"]').forEach(btn => {
+        btn.style.display = 'none';
+    });
+}
+
 
 function updateHeader() {
     const buyerButtons = document.querySelectorAll('[data-buyer-nav="true"]');
@@ -25,7 +46,7 @@ function updateHeader() {
     });
 
     cartCountLabel.textContent = state.cartCount;
-    authAction.textContent = state.isLoggedIn ? 'Logout' : 'Login';
+    // authAction.textContent = state.isLoggedIn ? 'Logout' : 'Login';
     menuBtn.style.display = state.isLoggedIn ? 'inline-flex' : 'none';
     nav.classList.toggle('open', state.isMenuOpen && state.isLoggedIn);
 }
@@ -55,7 +76,15 @@ function renderView() {
         })
         .then((html) => {
             pageContent.innerHTML = html;
+
             if (state.activeView === "auth") {
+                document.querySelector('.site-footer').style.display = 'none';
+
+
+                document.querySelectorAll('[data-buyer-nav="true"], [data-farmer-nav="true"] , #authAction')
+                    .forEach(btn => {
+                        btn.style.display = 'none';
+                    });
                 loadScript("js/auth.js", () => {
                     console.log('auth.js loaded');
                     init();
@@ -64,7 +93,14 @@ function renderView() {
                     }
                 });
             } else {
-                // footer.style.display = 'block';
+
+                if (state.userRole === 'farmer') {
+                    showFarmerNav();
+                } else {
+                    showBuyerNav();
+                }
+                document.querySelector(".site-footer")?.style.setProperty("display", "block");
+                document.querySelector("#authAction")?.style.setProperty("display", "block");
             }
         })
         .catch(() => {
@@ -121,6 +157,14 @@ function userAuthManage() {
         state.isLoggedIn = false;
         state.userRole = 'guest';
         state.activeView = 'auth';
+        logout().then(() => {
+            // renderView();
+            // updateHeader();
+            document.querySelector('.site-footer').style.display = 'none';
+        }).catch((error) => {
+            console.error('Logout failed', error);
+            alert('Logout failed. Please try again.');
+        });
     } else {
         state.isLoggedIn = true;
         state.userRole = 'buyer';
