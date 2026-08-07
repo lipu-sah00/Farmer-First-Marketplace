@@ -354,9 +354,7 @@ Responsive
 
 .title {
     color: #16a34a;
-    min-height: calc(48px * 1.2 * 2);
-    /* 2 lines */
-
+    min-height: calc(50px * 1.2 * 2);
 }
 
 .title::after {

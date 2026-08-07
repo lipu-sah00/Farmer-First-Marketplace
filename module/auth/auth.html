@@ -4,13 +4,10 @@
         <div class="left-content">
             <div class="hero-content">
                 <h5 class="title">
-                    <span id="runningText"></span>
+                    <span id="runningText" style="font-size:20px !important">Farmers First</span>
                 </h5>
 
                 <p class="description">
-                    <!-- Connect farmers directly with customers and nearby collection
-                    centres. Sell fresh crops, buy quality vegetables, fruits and
-                    grains, and grow your farming business digitally. -->
                     Connecting rural farmers with fair market prices while delivering
                     fresh farm produce directly to customers.
                 </p>
@@ -106,12 +103,10 @@
                     <input type="email" id="email" name="email" placeholder="Email Address" class="login-input">
 
                     <input type="password" id="password" name="password" autocomplete placeholder="Password"
-                        class="login-input">
+                        autocomplete="current-password" class="login-input">
 
-                    <!-- <div class="registerFields"  -->
                     <input type="password" id="confirmPassword" autocomplete name="confirmPassword"
-                        placeholder="Confirm Password" class="registerFields login-input">
-                    <!-- </div> -->
+                        autocomplete="new-password" placeholder="Confirm Password" class="registerFields login-input">
 
                     <button type="submit" class="loginFields login-btn-check" onclick="loginUser(event)">
                         Login </button>
@@ -126,25 +121,21 @@
                     <div class="msg">
                         {{ authMessage }}
                     </div>
-                    } -->
+                    } 
 
                 <div style="display:flex;flex-direction:column;gap:12px;margin-top:25px;">
                     <button class="loginFields farmer-login" type="button" onclick="loginUser(event,'farmer')">
                         👨‍🌾 Login as Farmer
-                    </button>
+                    </button> 
 
                     <button class="registerFields farmer-login" type="button" onclick="farmerRegister()">
                         👨‍🌾 Register as Farmer
-                    </button>
-
-
-                    
-
-                    <!-- <button class="loginFields logout-btn" id="logout_btn" type="button" (click)="logout()">
+                    </button> 
+                    <button class="loginFields logout-btn" id="logout_btn" type="button" (click)="logout()">
                         Logout
-                    </button> -->
+                    </button> 
 
-                </div>
+                </div> -->
             </div>
 
         </div>

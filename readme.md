@@ -52,7 +52,7 @@ readme.md
 - HTML5
 - CSS3
 - JavaScript (ES6)
-- Java
+- Firebase
 
 ## Hosting URL
 

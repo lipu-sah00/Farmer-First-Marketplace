@@ -10,6 +10,19 @@ import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    query,
+    where,
+    serverTimestamp,
+    doc,
+    setDoc,
+    getDoc
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
 // Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyCf6tMmYd5K5bSUzt5gdqJhIum8_ejsweQ",
@@ -23,6 +36,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 // Helper: map Firebase auth error codes to user-friendly messages
 function getAuthErrorMessage(code) {
@@ -64,74 +78,145 @@ export async function registerUser(event) {
 
     // Basic client-side validation
     if (!data.email || !data.password) {
-        alert('Please enter a valid email and password.');
+        showAlert('Please enter a valid email and password.', 'error', 2000);
         return;
     }
 
     if (data.password !== data.confirmPassword) {
-        alert('Passwords do not match.');
+        showAlert('Passwords do not match.', 'error', 2000);
         return;
     }
 
     try {
+        showLoader('Registering user...');
         const userCredential = await createUserWithEmailAndPassword(
             auth,
             data.email,
             data.password
         );
+        const user = userCredential.user;
+        console.log("Registered:", user);
+        // 2. Save additional user information in Firestore
 
-        console.log("Registered:", userCredential.user);
-
-        // You can also save other fields like name and phone to Firestore here
-        console.log("Name:", data.name);
-        console.log("Phone:", data.phone);
-
-        return userCredential.user;
+        await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
+            email: user.email,
+            name: data.name || "",
+            phone: data.phone || "",
+            role: "buyer", // Default role for regular users
+            createdAt: new Date()
+        });
+        showAlert('Registration successful. You can now log in.', 'success', 2000);
+        return user;
     } catch (error) {
         console.error(error.code, error.message);
         const msg = getAuthErrorMessage(error.code);
-        alert(msg);
+        showAlert(msg, 'error', 2000);
         throw error;
+    } finally {
+        hideLoader();
     }
 }
 
+
+export async function registerFarmer(obj) {
+    //event.preventDefault();
+    try {
+        showLoader('Registering farmer...');
+        // 1. Create Firebase Authentication user
+        const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            obj.email,
+            obj.password
+        );
+        const user = userCredential.user;
+        // 2. Save additional user information in Firestore
+        await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
+            role: "farmer", // Default role for farmers
+            createdAt: new Date(),
+            email: user.email,
+            name: obj.fullName,
+            phone: obj.mobile,
+            village: obj.village,
+            city: obj.city,
+            pinCode: obj.pinCode,
+            crop: obj.crop,
+            address: obj.address,
+            privacy: obj.privacy
+        });
+        return user;
+    } catch (error) {
+        console.error(error.code, error.message);
+        const msg = getAuthErrorMessage(error.code);
+        showAlert(msg, 'error', 2000);
+        throw error;
+    } finally {
+        hideLoader();
+    }
+}
 
 
 // ======================
 // Login
 // ======================
-export async function login(email, password, role) {
+export async function login(email, password) {
     try {
+        showLoader('Logging in...');
+        // Login with Firebase Authentication
         const userCredential = await signInWithEmailAndPassword(
             auth,
             email,
             password
         );
 
-        console.log("Logged In:", userCredential.user);
-        if (role === 'farmer') {
+        const user = userCredential.user;
+
+        // Get user data from Firestore
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            throw new Error("User profile not found.");
+        }
+
+        const userData = userSnap.data();
+        const role = userData.role;
+
+        console.log("Logged In:", user);
+        console.log("Role:", role);
+
+        // Set application state based on role
+        if (role === "farmer") {
             state = {
-                activeView: 'farmer_dashboard',
+                activeView: "farmer_dashboard",
                 isLoggedIn: true,
-                userRole: 'farmer',
-                isMenuOpen: false,
+                userRole: "farmer",
+                isMenuOpen: false
             };
+
+            renderView("farmer_dashboard");
+
         } else {
             state = {
-                activeView: 'home',
+                activeView: "home",
                 isLoggedIn: true,
-                userRole: 'buyer',
-                isMenuOpen: false,
+                userRole: "buyer",
+                isMenuOpen: false
             };
+
+            renderView("home");
         }
-        renderView('home');
-        return userCredential.user;
+
+        return { user, userData };
+
     } catch (error) {
         console.error(error.code, error.message);
         throw error;
+    } finally {
+        hideLoader();
     }
 }
-
 // Wrapper used by inline onclick handlers in non-module HTML
 export async function loginUser(event, role) {
     if (event && event.preventDefault) event.preventDefault();
@@ -141,12 +226,14 @@ export async function loginUser(event, role) {
 
     try {
         const user = await login(data.email, data.password, role);
-        alert('Login successful. Welcome!');
+        name = user.userData.name || "";
+        console.log("Logged in as:", name);
+        showAlert('Login successful. Hello, ' + name + '!', 'success', 3000);
         return user;
     } catch (error) {
         console.error('Login failed', error);
         const msg = getAuthErrorMessage(error.code);
-        alert(msg);
+        showAlert(msg, 'error', 2000);
         throw error;
     }
 }
@@ -179,8 +266,91 @@ onAuthStateChanged(auth, (user) => {
 // Export auth if needed elsewhere
 export { auth };
 
-// Expose functions to `window` so inline handlers like `onclick="registerUser(event)"` work
+export async function addProductToFirestore(productData) {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error('You must be logged in to add a product.');
+    }
+
+    if (!productData.name || !productData.price || !productData.quantity) {
+        throw new Error('Product name, price, and quantity are required.');
+    }
+
+    const product = {
+        ...productData,
+        price: Number(productData.price) || 0,
+        quantity: Number(productData.quantity) || 0,
+        ownerUid: user.uid,
+        ownerEmail: user.email || null,
+        createdAt: serverTimestamp(),
+    };
+
+    const docRef = await addDoc(collection(db, 'products'), product);
+    return docRef.id;
+}
+
+export async function getFarmerProducts() {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error('You must be logged in to view products.');
+    }
+
+    const productsQuery = query(
+        collection(db, 'products'),
+        where('ownerUid', '==', user.uid)
+    );
+    const snapshot = await getDocs(productsQuery);
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function getFarmerRevenueSummary() {
+    const products = await getFarmerProducts();
+    const monthTotals = {};
+    const yearTotals = {};
+
+    products.forEach((product) => {
+        const price = Number(product.price) || 0;
+        const quantity = Number(product.quantity) || 0;
+        const revenue = price * quantity;
+        let createdAt = null;
+
+        if (product.createdAt && typeof product.createdAt.toDate === 'function') {
+            createdAt = product.createdAt.toDate();
+        } else if (product.createdAt instanceof Date) {
+            createdAt = product.createdAt;
+        }
+
+        if (!createdAt) {
+            return;
+        }
+
+        const month = createdAt.toLocaleString('default', { month: 'short' });
+        const year = createdAt.getFullYear();
+        const monthKey = `${month} ${year}`;
+        const yearKey = `${year}`;
+
+        monthTotals[monthKey] = (monthTotals[monthKey] || 0) + revenue;
+        yearTotals[yearKey] = (yearTotals[yearKey] || 0) + revenue;
+    });
+
+    const monthly = Object.entries(monthTotals)
+        .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+        .map(([month, total]) => ({ month, total }));
+
+    const yearly = Object.entries(yearTotals)
+        .sort((a, b) => Number(a[0]) - Number(b[0]))
+        .map(([year, total]) => ({ year, total }));
+
+    const totalRevenue = yearly.reduce((sum, item) => sum + item.total, 0);
+
+    return { totalRevenue, monthly, yearly };
+}
+
 // This keeps existing HTML unchanged while using ES modules.
 window.registerUser = registerUser;
+window.registerFarmer = registerFarmer;
 window.loginUser = loginUser;
 window.logout = logout;
+window.addProductToFirestore = addProductToFirestore;
+window.getFarmerProducts = getFarmerProducts;
+window.getFarmerRevenueSummary = getFarmerRevenueSummary;

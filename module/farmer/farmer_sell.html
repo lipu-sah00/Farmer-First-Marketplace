@@ -1,4 +1,66 @@
 <section class="content-card">
   <h2>Sell Product</h2>
-  <p>Add a new listing for your harvest and reach your buyers.</p>
+  <p>Add your fresh harvest and make it available to buyers.</p>
+
+  <div class="form-group">
+    <label>Product Name</label>
+    <input type="text" id="productName" placeholder="e.g. Fresh Tomato">
+  </div>
+
+  <div class="form-group">
+    <label>Category</label>
+    <select id="category">
+      <option>Vegetables</option>
+      <option>Fruits</option>
+      <option>Grains</option>
+      <option>Pulses</option>
+      <option>Dairy</option>
+      <option>Others</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Price (₹)</label>
+    <input type="number" id="price" placeholder="Enter price per kg">
+  </div>
+
+  <div class="form-group">
+    <label>Quantity</label>
+    <input type="number" id="quantity" placeholder="Available quantity">
+  </div>
+
+  <div class="form-group">
+    <label>Unit</label>
+    <select id="unit">
+      <option>Kg</option>
+      <option>Quintal</option>
+      <option>Ton</option>
+      <option>Piece</option>
+      <option>Dozen</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Product Image</label>
+    <input type="file" id="image" accept="image/*">
+  </div>
+
+  <div class="form-group">
+    <label>Description</label>
+    <textarea id="description" rows="4" placeholder="Write about your product..."></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>Harvest Date</label>
+    <input type="date" id="harvestDate">
+  </div>
+
+  <div class="form-group">
+    <label>Location</label>
+    <input type="text" id="location" placeholder="Village / District">
+  </div>
+
+  <button type="button" id="addProductBtn" class="btn-primary" onclick="addProduct()">
+    Add Product
+  </button>
 </section>
