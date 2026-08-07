@@ -504,3 +504,39 @@ body {
   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
   min-width: 180px;
 }
+
+.card {
+    border-radius: 16px;
+    border: none;
+}
+
+.form-control,
+.form-select {
+    height: 46px;
+    border-radius: 10px;
+    border: 1px solid #dcdcdc;
+    transition: .2s;
+}
+
+textarea.form-control {
+    height: 110px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #2e7d32;
+    box-shadow: 0 0 0 .15rem rgba(46,125,50,.15);
+}
+
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 6px;
+}
+
+.btn-success {
+    border-radius: 10px;
+    min-width: 180px;
+    font-weight: 600;
+}

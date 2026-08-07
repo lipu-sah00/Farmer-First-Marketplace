@@ -303,6 +303,78 @@ export async function getFarmerProducts() {
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
+export async function getMandiLocations() {
+    const user = auth.currentUser;
+
+    if (!user) {
+        throw new Error("You must be logged in to view mandi locations.");
+    }
+
+    try {
+        const q = query(collection(db, "mandi_locations"));
+        const snapshot = await getDocs(q);
+
+        return snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
+    } catch (error) {
+        console.error("Error fetching mandi locations:", error);
+        throw new Error("Failed to fetch mandi locations.");
+    }
+}
+
+export async function getMandiLocationById(mandiId) {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error("You must be logged in.");
+    }
+
+    try {
+        const docRef = doc(db, "mandi_locations", mandiId);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+            return null;
+        }
+
+        return {
+            id: docSnap.id,
+            ...docSnap.data(),
+        };
+    } catch (error) {
+        console.error("Error fetching mandi location:", error);
+        throw error;
+    }
+}
+
+
+export async function getSubMandiLocations(mandiId) {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error("You must be logged in.");
+    }
+
+    try {
+        const docRef = doc(db, "sub_mandi_locations", mandiId);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+            return null;
+        }
+
+        return {
+            id: docSnap.id,
+            ...docSnap.data(),
+        };
+    } catch (error) {
+        console.error("Error fetching mandi location:", error);
+        throw error;
+    }
+}
+
+
+
 export async function getFarmerRevenueSummary() {
     const products = await getFarmerProducts();
     const monthTotals = {};
@@ -346,6 +418,31 @@ export async function getFarmerRevenueSummary() {
     return { totalRevenue, monthly, yearly };
 }
 
+export async function createMandiLocation(name, district, state) {
+    try {
+        const docRef = await addDoc(collection(db, "mandi_locations"), {
+            name,
+            district,
+            state,
+            createdAt: new Date(),
+        });
+
+        console.log("Mandi created with ID:", docRef.id);
+
+        return {
+            id: docRef.id,
+            name,
+            district,
+            state,
+        };
+    } catch (error) {
+        console.error("Error creating mandi:", error);
+        throw error;
+    }
+}
+
+window.createMandiLocation = createMandiLocation;
+
 // This keeps existing HTML unchanged while using ES modules.
 window.registerUser = registerUser;
 window.registerFarmer = registerFarmer;
@@ -354,3 +451,6 @@ window.logout = logout;
 window.addProductToFirestore = addProductToFirestore;
 window.getFarmerProducts = getFarmerProducts;
 window.getFarmerRevenueSummary = getFarmerRevenueSummary;
+window.getMandiLocations = getMandiLocations;
+window.getMandiLocationById = getMandiLocationById;
+window.getSubMandiLocations = getSubMandiLocations;

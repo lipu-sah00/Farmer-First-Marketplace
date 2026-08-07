@@ -104,6 +104,60 @@ function renderView() {
                 if (state.activeView === 'farmer_dashboard') {
                     renderFarmerDashboard();
                 }
+                if (state.activeView === 'farmer_sell') {
+                    getMandiLocations().then((locations) => {
+                        const locationSelect = document.getElementById("farmer_city");
+                        const blockSelect = document.getElementById("block_location");
+                        const subLocationSelect = document.getElementById("mandi_location");
+
+                        // Check farmer cities
+                        if (locations?.length) {
+                            locationSelect.innerHTML = locations
+                                .map(loc => `<option value="${loc.id}">${loc.name}</option>`)
+                                .join("");
+
+                            // Load first city data
+                            getMandiLocationById(locations[0].id).then((location) => {
+
+                                // Check location
+                                if (location?.Rural_block?.length) {
+
+                                    // Load blocks
+                                    blockSelect.innerHTML = location.Rural_block
+                                        .map(block => `<option value="${block}">${block}</option>`)
+                                        .join("");
+
+                                    // Load sub-locations for first block
+                                    getSubMandiLocations(location.Rural_block[0])
+                                        .then((subLocations) => {
+                                            subLocationSelect.innerHTML = subLocations?.NAME?.length
+                                                ? subLocations.NAME
+                                                    .map(subLoc => `<option value="${subLoc}">${subLoc}</option>`)
+                                                    .join("")
+                                                : `<option value="">No sub-locations available</option>`;
+                                        });
+
+                                } else {
+                                    blockSelect.innerHTML =
+                                        `<option value="">No blocks available</option>`;
+
+                                    subLocationSelect.innerHTML =
+                                        `<option value="">No sub-locations available</option>`;
+                                }
+                            });
+
+                        } else {
+                            locationSelect.innerHTML =
+                                `<option value="">No locations available</option>`;
+
+                            blockSelect.innerHTML =
+                                `<option value="">No blocks available</option>`;
+
+                            subLocationSelect.innerHTML =
+                                `<option value="">No sub-locations available</option>`;
+                        }
+                    });
+                }
             }
         })
         .catch(() => {
@@ -115,6 +169,59 @@ function renderView() {
             `;
         });
 }
+
+async function loadSubLocations(block) {
+    const subLocationSelect = document.getElementById("mandi_location");
+
+    try {
+        const subLocations = await getSubMandiLocations(block);
+
+        if (subLocations?.NAME?.length) {
+            subLocationSelect.innerHTML = subLocations.NAME
+                .map(name => `<option value="${name}">${name}</option>`)
+                .join("");
+        } else {
+            subLocationSelect.innerHTML =
+                `<option value="">No sub-locations available</option>`;
+        }
+    } catch (err) {
+        console.error(err);
+        subLocationSelect.innerHTML =
+            `<option value="">No sub-locations available</option>`;
+    }
+}
+async function onCityChange(select) {
+    const location = await getMandiLocationById(select.value);
+
+    if (!location) return;
+
+    const blockSelect = document.getElementById("block_location");
+
+    if (location?.Rural_block?.length) {
+        blockSelect.innerHTML = location.Rural_block
+            .map(block => `<option value="${block}">${block}</option>`)
+            .join("");
+
+        await loadSubLocations(location.Rural_block[0]);
+    } else {
+        blockSelect.innerHTML = `<option value="">No blocks available</option>`;
+        // Optional: Clear the sub-location dropdown as well
+        document.getElementById("mandi_location").innerHTML =
+            `<option value="">No sub-locations available</option>`;
+    }
+
+    if (location.Rural_block?.length) {
+        await loadSubLocations(location.Rural_block[0]);
+    }
+}
+
+async function onBlockChange(select) {
+    await loadSubLocations(select.value);
+}
+
+
+
+
 function loadScript(src, callback) {
     if (document.querySelector(`script[src="${src}"]`)) {
         callback?.();
@@ -138,7 +245,6 @@ function setView(view) {
 
     renderView();
     updateHeader();
-    closeMenu();
 }
 
 function userAuthManage() {
@@ -147,13 +253,10 @@ function userAuthManage() {
         state.userRole = 'guest';
         state.activeView = 'auth';
         logout().then(() => {
-            // renderView();
-            // updateHeader();
             document.querySelector('.site-footer').style.display = 'none';
             document.querySelector("#farmerRegisterBtn")?.style.setProperty("display", "block");
         }).catch((error) => {
-            console.error('Logout failed', error);
-            alert('Logout failed. Please try again.');
+            showAlert('Logout failed. Please try again.', 'error', 2000);
         });
     } else {
         state.isLoggedIn = true;
@@ -174,7 +277,6 @@ function showAlert(message, type = "error", duration = 2500) {
     const icon = document.getElementById("alertModalIcon");
 
     if (!modalElement || !title || !messageElement || !icon) {
-        console.error("Alert modal elements not found.");
         return;
     }
 
@@ -286,14 +388,12 @@ async function addProduct() {
 
     try {
         const productId = await window.addProductToFirestore(product);
-        console.log('Product added to Firestore with ID:', productId);
-        alert('Product added successfully!');
+        showAlert('Product added successfully', 'success', 2500);
         if (state.activeView === 'farmer_dashboard') {
             renderFarmerDashboard();
         }
     } catch (error) {
-        console.error('Failed to add product:', error);
-        alert(error.message || 'Could not add product. Please try again.');
+        showAlert(error.message || 'Could not add product. Please try again.', 'error', 2000);
     }
 }
 
@@ -374,68 +474,58 @@ function farmerRegister() {
 
     // Validation
     if (farmer.fullName === "") {
-        return alert("Please enter Full Name.");
+        return showAlert('Please enter Full Name.', 'error', 2000);
     }
-
     if (farmer.mobile === "") {
-        return alert("Please enter Mobile Number.");
+        return showAlert('Please enter Mobile Number.', 'error', 2000);
     }
-
     if (!/^[6-9]\d{9}$/.test(farmer.mobile)) {
-        return alert("Please enter a valid 10-digit Mobile Number.");
+        return showAlert('Please enter a valid 10-digit Mobile Number.', 'error', 2000);
     }
-
     if (farmer.email === "") {
-        return alert("Please enter Email Address.");
+        return showAlert('Please enter Email Address.', 'error', 2000);
     }
-
     if (!/^\S+@\S+\.\S+$/.test(farmer.email)) {
-        return alert("Please enter a valid Email Address.");
+        return showAlert('Please enter a valid Email Address.', 'error', 2000);
     }
-
     if (farmer.password === "") {
-        return alert("Please enter Password.");
+        return showAlert('Please enter Password.', 'error', 2000);
     }
-
     if (farmer.password.length < 6) {
-        return alert("Password must be at least 6 characters.");
+        return showAlert('Password must be at least 6 characters.', 'error', 2000);
     }
-
     if (farmer.village === "") {
-        return alert("Please enter Village / Area.");
+        return showAlert('Please enter Village / Area.', 'error', 2000);
     }
-
     if (farmer.city === "") {
-        return alert("Please enter City / District.");
+        return showAlert('Please enter City / District.', 'error', 2000);
     }
 
     if (farmer.pinCode === "") {
-        return alert("Please enter PIN Code.");
+        return showAlert('Please enter PIN Code.', 'error', 2000);
     }
 
     if (!/^\d{6}$/.test(farmer.pinCode)) {
-        return alert("PIN Code must be 6 digits.");
+        return showAlert('PIN Code must be 6 digits.', 'error', 2000);
     }
 
     if (farmer.crop === "") {
-        return alert("Please select Crop Production Type.");
+        return showAlert('Please select Crop Production Type.', 'error', 2000);
     }
 
     if (farmer.address === "") {
-        return alert("Please enter Postal Address.");
+        return showAlert('Please enter Postal Address.', 'error', 2000);
     }
 
     if (!farmer.privacy) {
-        return alert("Please accept the Privacy Policy.");
+        return showAlert('Please accept the Privacy Policy.', 'error', 2000);
     }
 
     // All validations passed
-    console.log("Farmer Data:", farmer);
-
-
     registerFarmer(farmer)
         .then(() => {
-            alert("Registration Successful!");
+            showAlert('Registration Successful!', 'success', 2500);
+
             const modal = bootstrap.Modal.getInstance(
                 document.getElementById("farmerRegisterModal")
             );
@@ -446,7 +536,8 @@ function farmerRegister() {
         })
         .catch((error) => {
             console.error("Registration failed:", error);
-            alert("Registration failed. Please try again.");
+            showAlert('Registration failed. Please try again.', 'error', 2000);
+
         });
 
 
