@@ -21,7 +21,7 @@ import {
     doc,
     setDoc,
     getDoc, updateDoc,
-    arrayUnion
+    arrayUnion, deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 // Firebase Config
@@ -313,6 +313,81 @@ export async function getFarmerProducts(showall = false) {
     const snapshot = await getDocs(productsQuery);
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
+
+export async function deleteFarmerProduct(productId) {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error('You must be logged in to delete products.');
+    }
+
+    if (!productId) {
+        throw new Error('Product ID is required.');
+    }
+
+    const productRef = doc(db, 'products', productId);
+    const productSnapshot = await getDoc(productRef);
+
+    if (!productSnapshot.exists()) {
+        throw new Error('Product not found.');
+    }
+
+    const productData = productSnapshot.data();
+
+    if (productData.ownerUid !== user.uid) {
+        throw new Error('You are not authorized to delete this product.');
+    }
+
+    await deleteDoc(productRef);
+
+    return true;
+}
+
+
+export async function updateFarmerProduct(productId, productData) {
+    const user = auth.currentUser;
+
+    if (!user) {
+        throw new Error('You must be logged in to update products.');
+    }
+
+    if (!productId) {
+        throw new Error('Product ID is required.');
+    }
+
+    if (!productData) {
+        throw new Error('Product data is required.');
+    }
+
+    const productRef = doc(db, 'products', productId);
+    const productSnapshot = await getDoc(productRef);
+
+    if (!productSnapshot.exists()) {
+        throw new Error('Product not found.');
+    }
+
+    const existingProduct = productSnapshot.data();
+
+    if (existingProduct.ownerUid !== user.uid) {
+        throw new Error('You are not authorized to update this product.');
+    }
+
+    await updateDoc(productRef, {
+        name: productData.name,
+        category: productData.category,
+        price: Number(productData.price),
+        quantity: Number(productData.quantity),
+        unit: productData.unit,
+        description: productData.description || '',
+        harvestDate: productData.harvestDate || '',
+        location: productData.location || '',
+        updatedAt: new Date()
+    });
+
+    return true;
+}
+
+
+
 
 export async function getMandiLocations() {
     const user = auth.currentUser;
@@ -676,7 +751,7 @@ export async function saveOrder(order) {
         const user = auth.currentUser;
 
         if (!user) {
-            alert("Please login first.");
+            showAlert("Please login first.", 'error');
             return;
         }
 
@@ -771,3 +846,5 @@ window.getFarmerRevenueSummary = getFarmerRevenueSummary;
 window.getMandiLocations = getMandiLocations;
 window.getMandiLocationById = getMandiLocationById;
 window.getSubMandiLocations = getSubMandiLocations;
+window.deleteFarmerProduct = deleteFarmerProduct;
+window.updateFarmerProduct = updateFarmerProduct;

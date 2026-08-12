@@ -460,34 +460,219 @@ async function renderFarmerDashboard() {
         const revenue = await window.getFarmerRevenueSummary();
 
         if (products.length === 0) {
-            productsContainer.innerHTML = '<p>No products added yet.</p>';
+            productsContainer.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="bi bi-box-seam fs-1 text-muted"></i>
+                    <p class="mt-2 text-muted">No products added yet.</p>
+                </div>
+            `;
         } else {
             productsContainer.innerHTML = products.map((product) => `
-                <div class="product-card">
-                    <h4>${product.name}</h4>
-                    <p><strong>Category:</strong> ${product.category || 'N/A'}</p>
-                    <p><strong>Price:</strong> ₹${product.price}</p>
-                    <p><strong>Quantity:</strong> ${product.quantity} ${product.unit || ''}</p>
-                    <p><strong>Location:</strong> ${product.location || 'N/A'}</p>
-                    <p><strong>Harvest Date:</strong> ${product.harvestDate || 'N/A'}</p>
-                    <p>${product.description || ''}</p>
+                <div class="farmer-product-card">
+
+                    <div class="product-actions">
+                        <button
+                            type="button"
+                            class="edit-product-btn"
+                            onclick="editProduct('${product.id}')"
+                            title="Edit product">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="delete-product-btn"
+                            onclick="deleteProduct('${product.id}')"
+                            title="Delete product">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+
+                    <div class="product-icon">
+                        <i class="bi bi-basket2"></i>
+                    </div>
+
+                    <h6 class="product-name" title="${product.name}">
+                        ${product.name}
+                    </h6>
+
+                    <div class="product-info">
+                        <div>
+                            <i class="bi bi-tags"></i>
+                            <span>${product.category || 'N/A'}</span>
+                        </div>
+
+                        <div>
+                            <i class="bi bi-currency-rupee"></i>
+                            <span>₹${product.price}</span>
+                        </div>
+
+                        <div>
+                            <i class="bi bi-box"></i>
+                            <span>${product.quantity} ${product.unit || ''}</span>
+                        </div>
+
+                        <div>
+                            <i class="bi bi-geo-alt"></i>
+                            <span title="${product.location || 'N/A'}">
+                                ${product.location || 'N/A'}
+                            </span>
+                        </div>
+
+                        <div>
+                            <i class="bi bi-calendar-event"></i>
+                            <span>${product.harvestDate || 'N/A'}</span>
+                        </div>
+                    </div>
+
+                    ${product.description ? `
+                        <p class="product-description" title="${product.description}">
+                            ${product.description}
+                        </p>
+                    ` : ''}
                 </div>
             `).join('');
         }
 
         totalRevenueEl.textContent = `₹${revenue.totalRevenue.toFixed(2)}`;
+
         monthlyRevenueEl.innerHTML = revenue.monthly.length > 0
-            ? revenue.monthly.map(item => `<li>${item.month}: ₹${item.total.toFixed(2)}</li>`).join('')
+            ? revenue.monthly.map(item =>
+                `<li>${item.month}: ₹${item.total.toFixed(2)}</li>`
+            ).join('')
             : '<li>No monthly revenue yet.</li>';
+
         yearlyRevenueEl.innerHTML = revenue.yearly.length > 0
-            ? revenue.yearly.map(item => `<li>${item.year}: ₹${item.total.toFixed(2)}</li>`).join('')
+            ? revenue.yearly.map(item =>
+                `<li>${item.year}: ₹${item.total.toFixed(2)}</li>`
+            ).join('')
             : '<li>No yearly revenue yet.</li>';
+
     } catch (error) {
         console.error('Failed to load farmer dashboard data:', error);
-        productsContainer.innerHTML = '<p>Unable to load products at this time.</p>';
+
+        productsContainer.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-exclamation-circle fs-1 text-danger"></i>
+                <p class="mt-2 text-danger">Unable to load products at this time.</p>
+            </div>
+        `;
+
         totalRevenueEl.textContent = '₹0';
         monthlyRevenueEl.innerHTML = '<li>Unable to load data.</li>';
         yearlyRevenueEl.innerHTML = '<li>Unable to load data.</li>';
+    } finally {
+        hideLoader();
+    }
+}
+async function deleteProduct(productId) {
+    const confirmed = confirm('Are you sure you want to delete this product?');
+    if (!confirmed) {
+        return;
+    }
+    showLoader();
+    try {
+        await window.deleteFarmerProduct(productId);
+        showAlert('Product deleted successfully.', 'success');
+        await renderFarmerDashboard();
+    } catch (error) {
+        showAlert('Unable to delete product. Please try again.', 'error');
+    } finally {
+        hideLoader();
+    }
+}
+
+async function editProduct(productId) {
+    try {
+        showLoader();
+
+        const products = await window.getFarmerProducts();
+        const product = products.find(item => item.id === productId);
+
+        if (!product) {
+            throw new Error('Product not found.');
+        }
+
+        document.getElementById('editProductId').value = product.id;
+        document.getElementById('editProductName').value = product.name || '';
+        document.getElementById('editProductCategory').value = product.category || '';
+        document.getElementById('editProductPrice').value = product.price || '';
+        document.getElementById('editProductQuantity').value = product.quantity || '';
+        document.getElementById('editProductUnit').value = product.unit || '';
+        document.getElementById('editProductLocation').value = product.location || '';
+        document.getElementById('editProductHarvestDate').value = product.harvestDate || '';
+        document.getElementById('editProductDescription').value = product.description || '';
+
+        const modalElement = document.getElementById('editProductModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+        modal.show();
+
+    } catch (error) {
+        console.error('Failed to load product:', error);
+        showAlert(error.message || 'Unable to load product.', 'error');
+    } finally {
+        hideLoader();
+    }
+}
+
+async function updateProductFromModal() {
+    const productId = document.getElementById('editProductId').value;
+
+    if (!productId) {
+        showAlert('Product ID is missing.', 'error');
+        return;
+    }
+
+    const productData = {
+        name: document.getElementById('editProductName').value.trim(),
+        category: document.getElementById('editProductCategory').value,
+        price: document.getElementById('editProductPrice').value,
+        quantity: document.getElementById('editProductQuantity').value,
+        unit: document.getElementById('editProductUnit').value,
+        location: document.getElementById('editProductLocation').value.trim(),
+        harvestDate: document.getElementById('editProductHarvestDate').value,
+        description: document.getElementById('editProductDescription').value.trim()
+    };
+
+    if (!productData.name) {
+        showAlert('Please enter product name.', 'error');
+        return;
+    }
+
+    if (!productData.category) {
+        showAlert('Please select a category.', 'error');
+        return;
+    }
+
+    if (!productData.price || Number(productData.price) <= 0) {
+        showAlert('Please enter a valid price.', 'error');
+        return;
+    }
+
+    if (!productData.quantity || Number(productData.quantity) <= 0) {
+        showAlert('Please enter a valid quantity.', 'error');
+        return;
+    }
+
+    try {
+        showLoader();
+
+        await window.updateFarmerProduct(productId, productData);
+
+        const modalElement = document.getElementById('editProductModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+        modal.hide();
+
+        await renderFarmerDashboard();
+
+        showAlert('Product updated successfully.', 'sucess');
+
+
+    } catch (error) {
+        console.error('Failed to update product:', error);
+        showAlert(error.message || 'Unable to update product.', 'error');
     } finally {
         hideLoader();
     }
