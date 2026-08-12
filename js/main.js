@@ -2,7 +2,7 @@ let state = {
     activeView: 'auth',
     isLoggedIn: false,
     userRole: 'buyer',
-    cartCount: 2,
+    cartCount: 0,
     isMenuOpen: false,
 };
 let alertTimer = null;
@@ -47,22 +47,29 @@ function updateHeader() {
     });
 
     cartCountLabel.textContent = state.cartCount;
-    nav.classList.toggle('open', state.isMenuOpen && state.isLoggedIn);
+    // nav.classList.toggle('open', state.isMenuOpen && state.isLoggedIn);
 }
 
-function renderView() {
+function renderView(view, callback) {
+    if (view) {
+        state.activeView = view;
+    }
+    setActiveNav(state.activeView);
+
     const footer = document.querySelector(".site-footer");
     const viewMap = {
         home: 'module/buyer/home.html',
         products: 'module/buyer/products.html',
         cart: 'module/buyer/cart.html',
         orders: 'module/buyer/orders.html',
+        confirm_order: 'module/buyer/confirm-order.html',
         farmer: 'module/farmer/farmer.html',
         farmer_dashboard: 'module/farmer/farmer_dashboard.html',
         farmer_sell: 'module/farmer/farmer_sell.html',
         auth: 'module/auth/auth.html',
+        about: 'module/common/aboutus.html',
+        privacy: 'module/common/privacy.html',
     };
-
     const pageToLoad = viewMap[state.activeView] || viewMap.home;
 
     fetch(pageToLoad)
@@ -75,7 +82,9 @@ function renderView() {
         })
         .then((html) => {
             pageContent.innerHTML = html;
-
+            if (callback) {
+                callback();
+            }
             if (state.activeView === "auth") {
                 document.querySelector('.site-footer').style.display = 'none';
 
@@ -84,13 +93,25 @@ function renderView() {
                     .forEach(btn => {
                         btn.style.display = 'none';
                     });
-                loadScript("js/auth.js", () => {
-                    console.log('auth.js loaded');
-                    init();
-                    if (footer != null) {
-                        footer.style.display = 'none';
-                    }
-                });
+
+                const storedUser = JSON.parse(
+                    localStorage.getItem('currentUser')
+                );
+
+                if (storedUser?.user && storedUser?.userData) {
+                    state.isLoggedIn = true;
+                    state.userRole = storedUser.userData.role;
+                    state.activeView = storedUser.activeView || (state.userRole === 'farmer' ? 'farmer_dashboard' : 'home');
+                    renderView(state.activeView);
+                } else {
+                    loadScript("js/auth.js", () => {
+                        init();
+                        if (footer != null) {
+                            footer.style.display = 'none';
+                        }
+                    });
+                }
+
             } else {
 
                 if (state.userRole === 'farmer') {
@@ -158,6 +179,21 @@ function renderView() {
                         }
                     });
                 }
+                if (state.activeView === 'products') {
+                    renderAllProducts();
+                }
+                if (state.activeView === 'cart') {
+                    renderMyCart();
+                }
+                if (state.activeView === 'home') {
+                    getUserCart().then((cart) => {
+                        state.cartCount = cart?.length || 0;
+                        updateHeader();
+                    })
+                }
+                if (state.activeView === 'orders') {
+                    renderOrders();
+                }
             }
         })
         .catch(() => {
@@ -169,7 +205,11 @@ function renderView() {
             `;
         });
 }
-
+function setActiveNav(view) {
+    document.querySelectorAll('.nav-btn[data-view]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+    });
+}
 async function loadSubLocations(block) {
     const subLocationSelect = document.getElementById("mandi_location");
 
@@ -218,10 +258,16 @@ async function onCityChange(select) {
 async function onBlockChange(select) {
     await loadSubLocations(select.value);
 }
-
-
-
-
+function footerFnCall(page) {
+    if (page == 'about') {
+        renderView('about', () => {
+        });
+    }
+    if (page == 'privacy') {
+        renderView('privacy', () => {
+        });
+    }
+}
 function loadScript(src, callback) {
     if (document.querySelector(`script[src="${src}"]`)) {
         callback?.();
@@ -407,10 +453,7 @@ async function renderFarmerDashboard() {
         return;
     }
 
-    productsContainer.innerHTML = '<p>Loading products...</p>';
-    totalRevenueEl.textContent = 'Loading...';
-    monthlyRevenueEl.innerHTML = '';
-    yearlyRevenueEl.innerHTML = '';
+    showLoader();
 
     try {
         const products = await window.getFarmerProducts();
@@ -445,9 +488,519 @@ async function renderFarmerDashboard() {
         totalRevenueEl.textContent = '₹0';
         monthlyRevenueEl.innerHTML = '<li>Unable to load data.</li>';
         yearlyRevenueEl.innerHTML = '<li>Unable to load data.</li>';
+    } finally {
+        hideLoader();
     }
 }
 
+
+
+function getProductById(productId) {
+    return allProducts.find(
+        product => product.id === productId
+    );
+}
+
+function updateCartQuantityUI(productId, quantity) {
+
+    const quantityElement = document.getElementById(
+        `cart-quantity-${productId}`
+    );
+
+    if (quantityElement) {
+        quantityElement.textContent = quantity;
+    }
+}
+
+async function renderMyCart() {
+
+    const cartContainer = document.getElementById('buyerCart');
+    const totalPriceElement = document.getElementById('cartTotal');
+
+    if (!cartContainer) {
+        return;
+    }
+
+    showLoader();
+
+    try {
+
+        allProducts = await window.getFarmerProducts(true);
+
+        const cart = await window.getUserCart();
+
+        console.log("User cart:", cart);
+
+        state.cartCount = cart?.length || 0;
+        updateHeader();
+
+        // Empty cart
+        if (!cart || cart.length === 0) {
+
+            cartContainer.innerHTML = `
+                <div class="cart-card">
+
+                    <div class="empty-cart">
+                        <i class="bi bi-cart-x"></i>
+                        <h4>Your cart is empty</h4>
+                        <p>Add some products to your cart.</p>
+                    </div>
+
+                </div>
+            `;
+
+            if (totalPriceElement) {
+                totalPriceElement.innerHTML = '₹0.00';
+            }
+
+            return;
+        }
+
+        // Calculate total
+        let totalPrice = 0;
+
+        cart.forEach((product) => {
+            totalPrice += Number(product.totalPrice || 0);
+        });
+
+        if (totalPriceElement) {
+            totalPriceElement.innerHTML = `₹${totalPrice.toFixed(2)}`;
+        }
+
+        // Single cart card
+        cartContainer.innerHTML = `
+            <div class="cart-card">
+
+                <!-- Header -->
+                <div class="cart-header">
+
+                    <div>
+                        <h3>
+                            <i class="bi bi-cart3"></i>
+                            My Cart
+                        </h3>
+
+                        <span>
+                            ${cart.length} item${cart.length > 1 ? 's' : ''}
+                        </span>
+                    </div>
+
+                    <div class="cart-item-count">
+                        ${cart.length}
+                    </div>
+
+                </div>
+
+
+                <!-- Products -->
+                <div class="cart-products">
+
+                    ${cart.map((product, index) => `
+
+                        <div class="cart-product">
+
+                            <div class="product-number">
+                                ${index + 1}
+                            </div>
+
+                            <div class="product-info">
+
+                                <h4>
+                                    ${product.name || 'Product'}
+                                </h4>
+
+                                <div class="product-meta">
+
+                                    <span>
+                                        <i class="bi bi-box"></i>
+                                        Quantity:
+                                        <strong>${product.quantity || 0}</strong>
+                                    </span>
+
+                                    <span>
+                                        <i class="bi bi-currency-rupee"></i>
+                                        Price:
+                                        <strong>
+                                            ₹${Number(product.totalPrice || 0).toFixed(2)}
+                                        </strong>
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                           
+
+                        </div>
+
+                    `).join('')}
+
+                </div>
+
+
+                <!-- Cart Summary -->
+                <div class="cart-summary">
+
+                    <div class="summary-row">
+                        <span>Total Items</span>
+                        <strong>${cart.length}</strong>
+                    </div>
+
+                    <div class="summary-row total-row">
+                        <span>Grand Total</span>
+
+                        <strong>
+                            ₹${totalPrice.toFixed(2)}
+                        </strong>
+
+                        <button class="btn btn-success" onclick="handleCheckout('${cart[0]?.productId || ''}', '${totalPrice.toFixed(2)}', '${cart.length}')">Checkout</button>
+
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+    } catch (error) {
+
+        console.error('Failed to load cart:', error);
+
+        cartContainer.innerHTML = `
+            <div class="cart-card cart-error">
+
+                <i class="bi bi-exclamation-triangle"></i>
+
+                <h4>Unable to load cart</h4>
+
+                <p>Please try again later.</p>
+
+            </div>
+        `;
+
+        if (totalPriceElement) {
+            totalPriceElement.innerHTML = '₹0.00';
+        }
+
+    } finally {
+
+        hideLoader();
+
+    }
+}
+
+function handleCheckout(productId, totalPrice, itemCount) {
+    renderView('confirm_order', () => {
+        const totalPriceElement =
+            document.getElementById('confirmGrandTotal');
+
+        const itemCountElement =
+            document.getElementById('confirmTotalItems');
+
+
+        if (totalPriceElement) {
+            totalPriceElement.textContent =
+                `₹${Number(totalPrice).toFixed(2)}`;
+        }
+
+
+        if (itemCountElement) {
+            itemCountElement.textContent = itemCount;
+        }
+
+    });
+}
+
+
+async function placeOrder() {
+
+    // Delivery details
+    const deliveryName =
+        document.getElementById('deliveryName')?.value.trim();
+
+    const deliveryMobile =
+        document.getElementById('deliveryMobile')?.value.trim();
+
+    const deliveryAddress =
+        document.getElementById('deliveryAddress')?.value.trim();
+
+    const deliveryCity =
+        document.getElementById('deliveryCity')?.value.trim();
+
+    const deliveryState =
+        document.getElementById('deliveryState')?.value.trim();
+
+    const deliveryPincode =
+        document.getElementById('deliveryPincode')?.value.trim();
+
+
+    // Payment method
+    const paymentMethod =
+        document.querySelector(
+            'input[name="paymentMethod"]:checked'
+        )?.value;
+
+
+    // Order summary
+    const totalItems =
+        document.getElementById('confirmTotalItems')?.textContent.trim();
+
+    const grandTotalText =
+        document.getElementById('confirmGrandTotal')?.textContent.trim();
+
+    // Remove ₹ and convert to number
+    const grandTotal =
+        Number(grandTotalText.replace(/[₹,]/g, ''));
+
+
+    // Create order object
+    const order = {
+
+        delivery: {
+            name: deliveryName,
+            mobile: deliveryMobile,
+            address: deliveryAddress,
+            city: deliveryCity,
+            state: deliveryState,
+            pincode: deliveryPincode
+        },
+
+        payment: {
+            method: paymentMethod
+        },
+
+        summary: {
+            totalItems: Number(totalItems),
+            grandTotal: grandTotal
+        }
+
+    };
+
+    await saveOrder(order)
+        .then(() => {
+            showAlert('Order placed successfully!', 'success', 2500);
+        })
+        .catch((error) => {
+            showAlert('Order placement failed. Please try again.', 'error', 2000);
+        })
+        .finally(() => {
+            renderView('home');
+        });
+}
+
+async function renderOrders() {
+    const ordersContainer = document.getElementById("ordersContainer");
+    if (!ordersContainer) {
+        return;
+    }
+    try {
+        const orders = await getOrders();
+        orders[0].status = 'delivered';
+        orders[1].status = 'cancelled'
+        orders[2].status = 'shipped'
+
+        if (!orders.length) {
+            ordersContainer.innerHTML = `
+                <div class="empty-orders">
+                    <div class="empty-orders-icon">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <h5>No orders yet</h5>
+                    <p>Start shopping and your orders will appear here.</p>
+                    <button class="btn btn-success btn-sm" data-view="products">
+                        <i class="bi bi-bag me-1"></i>Start Shopping
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        ordersContainer.innerHTML = `
+            <div class="row g-3">
+                ${orders.map(order => `
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-12">
+                        <div class="order-card h-100">
+                            <div class="order-card-header">
+                                <div>
+                                    <small class="order-label">ORDER</small>
+                                    <h6 class="order-id mb-0">#${order.id}</h6>
+                                </div>
+                                <span class="order-status ${getOrderStatusClass(order.status)}">
+                                    <i class="bi bi-circle-fill"></i>
+                                    ${order.status || "Pending"}
+                                </span>
+                            </div>
+                            <div class="order-divider"></div>
+                            <div class="order-info">
+                                <div class="order-info-item">
+                                    <div class="order-icon">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    <div>
+                                        <small>Delivery To</small>
+                                        <p>${order.delivery?.name || "N/A"}</p>
+                                    </div>
+                                </div>
+                                <div class="order-info-item">
+                                    <div class="order-icon">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </div>
+                                    <div>
+                                        <small>Address</small>
+                                        <p>
+                                            ${order.delivery?.address || "N/A"},
+                                            ${order.delivery?.city || ""},
+                                            ${order.delivery?.state || ""}
+                                            - ${order.delivery?.pincode || ""}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="order-info-item">
+                                    <div class="order-icon">
+                                        <i class="bi bi-credit-card"></i>
+                                    </div>
+                                    <div>
+                                        <small>Payment</small>
+                                        <p>${order.payment?.method || "N/A"}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="order-summary">
+                                <div>
+                                    <small>Items</small>
+                                    <strong>
+                                        <i class="bi bi-bag me-1"></i>
+                                        ${order.summary?.totalItems || 0}
+                                    </strong>
+                                </div>
+                                <div class="text-end">
+                                    <small>Total Amount</small>
+                                    <strong class="order-total">
+                                        ₹${Number(order.summary?.grandTotal || 0).toFixed(2)}
+                                    </strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join("")}
+            </div>
+        `;
+    } catch (error) {
+        console.error(error);
+        ordersContainer.innerHTML = `
+            <div class="alert alert-danger d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-circle"></i>
+                Unable to load your orders.
+            </div>
+        `;
+    }
+}
+function getOrderStatusClass(status) {
+    const value = String(status || "").toLowerCase();
+    if (value === "delivered" || value === "completed") {
+        return "status-success";
+    }
+    if (value === "cancelled" || value === "canceled") {
+        return "status-danger";
+    }
+    if (value === "shipped" || value === "out for delivery") {
+        return "status-primary";
+    }
+    return "status-warning";
+}
+
+let allProducts = [];
+let userCart = [];
+
+function searchProducts(value) {
+    const searchInput = document.getElementById("productSearch");
+    const searchTerm = (value ?? searchInput?.value ?? "").trim().toLowerCase();
+    const filteredProducts = allProducts.filter(product =>
+        product.name?.toLowerCase().includes(searchTerm) ||
+        product.category?.toLowerCase().includes(searchTerm)
+    );
+    renderProductCards(filteredProducts);
+}
+
+function renderProductCards(products) {
+    const productsContainer = document.getElementById('buyerProducts');
+    if (!productsContainer) {
+        return;
+    }
+
+    productsContainer.innerHTML = products.map(product => {
+        const cartItem = userCart.find(item => item.productId === product.id);
+        const quantity = cartItem ? Number(cartItem.quantity) : 0;
+
+        return `
+            <div class="product-card" data-product-id="${product.id}">
+                <div class="cart-actions">
+                    <button class="cart-btn quantity-btn" title="Decrease Quantity" onclick="decreaseCartQuantity('${product.id}')" ${quantity === 0 ? 'disabled' : ''}>
+                        <i class="bi bi-dash"></i>
+                    </button>
+                    <span class="cart-quantity" id="cart-quantity-${product.id}">
+                        ${quantity}
+                    </span>
+                    <button class="cart-btn quantity-btn" title="Increase Quantity" onclick="addToCart('${product.id}')">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                    <button class="cart-btn remove-cart-btn" title="Remove from Cart" onclick="removeFromCart('${product.id}')" ${quantity === 0 ? 'disabled' : ''}>
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                <div class="product-content">
+                    <div class="product-details">
+                        <h4>${product.name}</h4>
+                        <p>
+                            <strong>Category:</strong>
+                            ${product.category || 'N/A'}
+                        </p>
+                        <p>
+                            <strong>Price:</strong>
+                            ₹${product.price}
+                        </p>
+                        <p>
+                            <strong>Harvest on:</strong>
+                            ${product.harvestDate || 'N/A'}
+                        </p>
+                    </div>
+                    <div class="product-image">
+                        <img src="${product?.image || 'assets/img2.jpg'}" alt="${product?.name || 'Product'}" onerror="this.src='assets/img2.jpg'">
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    if (!products.length) {
+        productsContainer.innerHTML = `
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-search fs-3"></i>
+                <p class="mt-2 mb-0">No products found.</p>
+            </div>
+        `;
+    }
+}
+
+async function renderAllProducts() {
+    const productsContainer = document.getElementById('buyerProducts');
+
+    if (!productsContainer) {
+        return;
+    }
+
+    showLoader();
+
+    try {
+        allProducts = await window.getFarmerProducts(true);
+        userCart = await window.getUserCart();
+        renderProductCards(allProducts);
+    } catch (error) {
+        console.error('Failed to load Products:', error);
+        productsContainer.innerHTML = '<p>Unable to load products at this time.</p>';
+    } finally {
+        hideLoader();
+    }
+}
 
 // farmer registration form submission
 function openFarmerRegisterModal() {

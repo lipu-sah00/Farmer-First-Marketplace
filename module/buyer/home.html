@@ -1,15 +1,289 @@
-<section class="hero-card">
-  <p class="stat-pill">Fresh from local farms</p>
-  <h2>Welcome to Farmer First Marketplace</h2>
-  <p>Browse farm-fresh produce, manage your cart, and keep track of orders in one place.</p>
-  <div class="hero-grid">
-    <div>
-      <h3>Daily essentials</h3>
-      <p>Vegetables, fruits, dairy, and pantry staples delivered fast.</p>
+<section class="hero-card container-fluid py-4">
+
+  <div class="row align-items-center g-4">
+
+    <!-- LEFT CONTENT -->
+    <div class="col-lg-7 col-md-7">
+
+      <p class="stat-pill">
+        <i class="bi bi-leaf-fill"></i>
+        Fresh from local farms
+      </p>
+
+      <h2>
+        Fresh Produce, <br>
+        <span>Straight from Farmers</span>
+      </h2>
+
+      <p class="hero-description">
+        Discover fresh vegetables, fruits, dairy products and everyday
+        essentials sourced directly from trusted local farmers and
+        delivered to your doorstep.
+      </p>
+
+      <div class="hero-actions d-flex flex-wrap gap-2 mb-4">
+
+        <!-- <button class="btn btn-success" data-view="products">
+          <i class="bi bi-bag-heart me-1"></i>
+          Shop Fresh Products
+        </button>
+
+        <button class="btn btn-outline-success" data-view="orders">
+          <i class="bi bi-box-seam me-1"></i>
+          My Orders
+        </button> -->
+
+      </div>
+
+      <!-- FEATURES -->
+      <div class="hero-grid">
+
+        <div class="hero-feature">
+          <i class="bi bi-basket2-fill"></i>
+          <div>
+            <h3>Fresh & Quality</h3>
+            <p>
+              Farm-fresh products carefully selected for your everyday needs.
+            </p>
+          </div>
+        </div>
+
+        <div class="hero-feature">
+          <i class="bi bi-person-hearts"></i>
+          <div>
+            <h3>Trusted Farmers</h3>
+            <p>
+              Buy directly from local farmers and support their hard work.
+            </p>
+          </div>
+        </div>
+
+        <div class="hero-feature">
+          <i class="bi bi-truck"></i>
+          <div>
+            <h3>Fast Delivery</h3>
+            <p>
+              Get your fresh groceries delivered conveniently to your doorstep.
+            </p>
+          </div>
+        </div>
+
+        <div class="hero-feature">
+          <i class="bi bi-shield-check"></i>
+          <div>
+            <h3>Safe & Reliable</h3>
+            <p>
+              Simple ordering, secure checkout and easy order tracking.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
     </div>
-    <div>
-      <h3>Trusted farmers</h3>
-      <p>Support local growers and see the full journey from farm to door.</p>
+
+
+    <!-- RIGHT IMAGE CAROUSEL -->
+    <div class="col-lg-5 col-md-5">
+
+      <div id="freshProductCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel"
+        data-bs-interval="2000">
+
+        <!-- Indicators -->
+        <div class="carousel-indicators">
+
+          <button type="button" data-bs-target="#freshProductCarousel" data-bs-slide-to="0" class="active"
+            aria-current="true" aria-label="Vegetables"></button>
+
+          <button type="button" data-bs-target="#freshProductCarousel" data-bs-slide-to="1"
+            aria-label="Fruits"></button>
+
+          <button type="button" data-bs-target="#freshProductCarousel" data-bs-slide-to="2" aria-label="Fish"></button>
+
+          <button type="button" data-bs-target="#freshProductCarousel" data-bs-slide-to="3" aria-label="Dairy"></button>
+
+        </div>
+
+
+        <!-- Carousel Items -->
+        <div class="carousel-inner rounded-4 overflow-hidden">
+
+          <!-- Vegetables -->
+          <div class="carousel-item active">
+
+            <img src="assets/veg1.jpg" class="d-block w-100" alt="Fresh vegetables">
+
+            <div class="carousel-caption">
+              <span class="badge bg-success mb-2">
+                <i class="bi bi-leaf-fill"></i>
+                Farm Fresh
+              </span>
+
+              <h4>Fresh Vegetables</h4>
+
+              <p>
+                Freshly harvested vegetables from local farms.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <!-- Fruits -->
+          <div class="carousel-item">
+
+            <img src="assets/customer_with_veg.png" class="d-block w-100" alt="Fresh fruits">
+
+            <div class="carousel-caption">
+
+              <span class="badge bg-warning text-dark mb-2">
+                <i class="bi bi-apple"></i>
+                Fresh Pick
+              </span>
+
+              <h4>Fresh Fruits</h4>
+
+              <p>
+                Naturally fresh and delicious seasonal fruits.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <!-- Fish -->
+          <div class="carousel-item">
+
+            <img src="assets/rohu-fish.webp" class="d-block w-100" alt="Fresh fish">
+
+            <div class="carousel-caption">
+
+              <span class="badge bg-primary mb-2">
+                <i class="bi bi-water"></i>
+                Daily Catch
+              </span>
+
+              <h4>Fresh Fish</h4>
+
+              <p>
+                Quality fish sourced from trusted sellers.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <!-- Dairy -->
+          <div class="carousel-item">
+
+            <img src="assets/Cow-Dairy-Farm.webp" class="d-block w-100" alt="Fresh dairy products">
+
+            <div class="carousel-caption">
+
+              <span class="badge bg-light text-dark mb-2">
+                <i class="bi bi-cup-hot"></i>
+                Fresh Dairy
+              </span>
+
+              <h4>Dairy Products</h4>
+
+              <p>
+                Fresh milk and quality dairy products for your family.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- Previous -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#freshProductCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+
+
+        <!-- Next -->
+        <button class="carousel-control-next" type="button" data-bs-target="#freshProductCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+
+      </div>
+
     </div>
+
   </div>
+
+</section>
+
+
+<section class="fresh-picks-section container my-4">
+
+  <div class="text-center mb-3">
+    <span class="text-success small fw-semibold">
+      <i class="bi bi-stars"></i> Fresh Picks
+    </span>
+
+    <h3 class="fw-bold mb-1">Fresh From the Farm & Sea</h3>
+
+    <p class="text-muted small mb-0">
+      Quality products brought fresh to your doorstep.
+    </p>
+  </div>
+
+  <div class="fresh-animation-wrapper">
+
+    <!-- Vegetables -->
+    <div class="fresh-item vegetable-item">
+      <div class="fresh-circle">
+        🥕
+      </div>
+      <span>Vegetables</span>
+      <small>Farm Fresh</small>
+    </div>
+
+    <div class="fresh-item vegetable-item second">
+      <div class="fresh-circle">
+        🥦
+      </div>
+    </div>
+
+    <!-- Fruits -->
+    <div class="fresh-item fruit-item">
+      <div class="fresh-circle">
+        🍎
+      </div>
+      <span>Fruits</span>
+      <small>Fresh & Juicy</small>
+    </div>
+
+    <div class="fresh-item fruit-item second">
+      <div class="fresh-circle">
+        🍊
+      </div>
+    </div>
+
+    <!-- Fish -->
+    <div class="fresh-item fish-item">
+      <div class="fresh-circle">
+        🐟
+      </div>
+      <span>Fresh Fish</span>
+      <small>Daily Catch</small>
+    </div>
+
+    <div class="fresh-item fish-item second">
+      <div class="fresh-circle">
+        🐠
+      </div>
+    </div>
+
+  </div>
+
 </section>

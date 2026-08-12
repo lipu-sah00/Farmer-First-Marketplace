@@ -1,0 +1,158 @@
+<div id="confirmOrder" class="container py-4">
+
+    <div class="card border-0 shadow-sm">
+
+        <!-- Header -->
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-check2-circle me-2"></i>
+                Confirm Order
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <!-- Delivery Address -->
+            <div class="mb-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="bi bi-geo-alt-fill text-success me-2"></i>
+                    Delivery Address
+                </h6>
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" id="deliveryName" class="form-control" placeholder="Enter full name"
+                            autocomplete="name">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="tel" id="deliveryMobile" class="form-control" placeholder="Enter mobile number"
+                            maxlength="10" autocomplete="tel">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Address</label>
+                        <textarea id="deliveryAddress" class="form-control" rows="3"
+                            placeholder="House No, Street, Area"></textarea>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">City</label>
+                        <input type="text" id="deliveryCity" class="form-control" placeholder="City"
+                            autocomplete="address-level2">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">State</label>
+                        <input type="text" id="deliveryState" class="form-control" placeholder="State"
+                            autocomplete="address-level1">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">PIN Code</label>
+                        <input type="text" id="deliveryPincode" class="form-control" placeholder="PIN Code"
+                            maxlength="6" autocomplete="postal-code">
+                    </div>
+
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Payment Method -->
+            <div class="mb-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="bi bi-credit-card-fill text-success me-2"></i>
+                    Payment Method
+                </h6>
+
+                <div class="row g-3">
+
+                    <!-- COD -->
+                    <div class="col-md-6">
+                        <div class="form-check border rounded p-3 h-100">
+
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD"
+                                checked>
+
+                            <label class="form-check-label w-100" for="cod">
+
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-cash-coin fs-3 text-success me-3"></i>
+
+                                    <div>
+                                        <strong>Cash on Delivery</strong>
+                                        <div class="text-muted small">
+                                            Pay when your order is delivered
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- UPI -->
+                    <div class="col-md-6">
+                        <div class="form-check border rounded p-3 h-100">
+
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="upi" value="UPI">
+
+                            <label class="form-check-label w-100" for="upi">
+
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-phone fs-3 text-primary me-3"></i>
+
+                                    <div>
+                                        <strong>UPI</strong>
+                                        <div class="text-muted small">
+                                            Pay securely using UPI
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Order Summary -->
+            <div class="mb-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="bi bi-receipt text-success me-2"></i>
+                    Order Summary
+                </h6>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total Items</span>
+                    <strong id="confirmTotalItems">0</strong>
+                </div>
+
+                <div class="d-flex justify-content-between fs-5">
+                    <span class="fw-bold">Grand Total</span>
+                    <strong class="text-success" id="confirmGrandTotal">
+                        ₹0.00
+                    </strong>
+                </div>
+            </div>
+
+            <!-- Place Order -->
+            <div class="d-grid">
+                <button type="button" class="btn btn-success btn-lg" onclick="placeOrder()">
+
+                    <i class="bi bi-bag-check-fill me-2"></i>
+                    Place Order
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</div>

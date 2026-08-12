@@ -7,7 +7,7 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    onAuthStateChanged
+    onAuthStateChanged, sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
 import {
@@ -20,7 +20,8 @@ import {
     serverTimestamp,
     doc,
     setDoc,
-    getDoc
+    getDoc, updateDoc,
+    arrayUnion
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 // Firebase Config
@@ -32,6 +33,7 @@ const firebaseConfig = {
     messagingSenderId: "367209163612",
     appId: "1:367209163612:web:afe6b3b63cbc08c305ef99"
 };
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -65,6 +67,7 @@ function getAuthErrorMessage(code) {
             return 'An error occurred. Please try again.';
     }
 }
+
 
 // Register
 export async function registerUser(event) {
@@ -207,6 +210,10 @@ export async function login(email, password) {
 
             renderView("home");
         }
+        localStorage.setItem(
+            'currentUser',
+            JSON.stringify({ user, userData })
+        );
 
         return { user, userData };
 
@@ -245,6 +252,7 @@ export async function logout() {
     try {
         await signOut(auth);
         console.log("Logged Out");
+        localStorage.removeItem('currentUser');
     } catch (error) {
         console.error(error);
     }
@@ -289,16 +297,19 @@ export async function addProductToFirestore(productData) {
     return docRef.id;
 }
 
-export async function getFarmerProducts() {
+export async function getFarmerProducts(showall = false) {
     const user = auth.currentUser;
     if (!user) {
         throw new Error('You must be logged in to view products.');
     }
 
-    const productsQuery = query(
+    let productsQuery = query(
         collection(db, 'products'),
         where('ownerUid', '==', user.uid)
     );
+    if (showall) {
+        productsQuery = query(collection(db, 'products'));
+    }
     const snapshot = await getDocs(productsQuery);
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
@@ -441,10 +452,316 @@ export async function createMandiLocation(name, district, state) {
     }
 }
 
-window.createMandiLocation = createMandiLocation;
+export async function addToCart(productId) {
+    console.log("Adding product to cart:", productId);
 
-// This keeps existing HTML unchanged while using ES modules.
+    const user = auth.currentUser;
+
+    if (!user) {
+        throw new Error("User is not logged in");
+    }
+
+    const product = allProducts.find(item => item.id === productId);
+
+    if (!product) {
+        throw new Error("Product not found");
+    }
+
+    try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            throw new Error("User document does not exist");
+        }
+
+        const cart = userSnap.data().cart || [];
+
+        const existingProduct = cart.find(
+            item => item.productId === productId
+        );
+
+        let updatedCart;
+        let newQuantity;
+
+        if (existingProduct) {
+
+            updatedCart = cart.map(item => {
+
+                if (item.productId === productId) {
+                    newQuantity = Number(item.quantity) + 1;
+
+                    return {
+                        ...item,
+                        quantity: newQuantity,
+                        totalPrice: newQuantity * Number(item.price)
+                    };
+                }
+
+                return item;
+            });
+
+        } else {
+
+            newQuantity = 1;
+
+            updatedCart = [
+                ...cart,
+                {
+                    productId: product.id,
+                    name: product.name,
+                    quantity: 1,
+                    price: Number(product.price),
+                    totalPrice: Number(product.price)
+                }
+            ];
+        }
+
+        await updateDoc(userRef, {
+            cart: updatedCart
+        });
+
+        // Update UI immediately
+        updateCartQuantityUI(productId, newQuantity);
+
+        return true;
+
+    } catch (error) {
+        console.error("Error adding product:", error);
+        throw error;
+    }
+}
+export async function decreaseCartQuantity(productId) {
+    console.log("Decreasing product quantity:", productId);
+
+    const user = auth.currentUser;
+
+    if (!user) {
+        throw new Error("User is not logged in");
+    }
+
+    try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            throw new Error("User document does not exist");
+        }
+
+        const cart = userSnap.data().cart || [];
+
+        let newQuantity = 0;
+
+        const updatedCart = cart
+            .map(item => {
+
+                if (item.productId === productId) {
+
+                    newQuantity = Number(item.quantity) - 1;
+
+                    if (newQuantity <= 0) {
+                        return null;
+                    }
+
+                    return {
+                        ...item,
+                        quantity: newQuantity,
+                        totalPrice: newQuantity * Number(item.price)
+                    };
+                }
+
+                return item;
+            })
+            .filter(item => item !== null);
+
+        await updateDoc(userRef, {
+            cart: updatedCart
+        });
+
+        // Update UI immediately
+        updateCartQuantityUI(productId, Math.max(newQuantity, 0));
+
+        return true;
+
+    } catch (error) {
+        console.error("Error decreasing quantity:", error);
+        throw error;
+    }
+}
+
+export async function removeFromCart() {
+
+    const user = auth.currentUser;
+
+    if (!user) {
+        throw new Error("User is not logged in");
+    }
+
+    try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            throw new Error("User document does not exist");
+        }
+
+        // const cart = userSnap.data().cart || [];
+
+        // const updatedCart = cart.filter(
+        //     item => item.productId !== productId
+        // );
+
+        await updateDoc(userRef, { cart: [] });
+
+        // Update UI immediately
+        // updateCartQuantityUI(productId, 0);
+
+        return true;
+
+    } catch (error) {
+        console.error("Error removing product:", error);
+        throw error;
+    }
+}
+
+export async function getUserCart() {
+
+    const user = auth.currentUser;
+
+    // User is not logged in
+    if (!user) {
+        console.log("No logged-in user");
+        return [];
+    }
+
+    try {
+
+        const userRef = doc(
+            db,
+            "users",
+            user.uid
+        );
+
+        const userSnap = await getDoc(userRef);
+
+        // User document does not exist
+        if (!userSnap.exists()) {
+            console.log("User document does not exist");
+            return [];
+        }
+
+        const userData = userSnap.data();
+
+        // Return cart or empty array
+        const cart = userData.cart || [];
+
+
+        return cart;
+
+    } catch (error) {
+
+        console.error(
+            "Error getting user cart:",
+            error
+        );
+
+        throw error;
+    }
+}
+
+
+export async function saveOrder(order) {
+    showLoader("Placing your order...");
+    try {
+        const user = auth.currentUser;
+
+        if (!user) {
+            alert("Please login first.");
+            return;
+        }
+
+        await addDoc(
+            collection(db, "users", user.uid, "orders"),
+            {
+                ...order,
+                status: "Pending",
+                createdAt: serverTimestamp()
+            }
+        );
+        await removeFromCart();
+    } catch (error) {
+        throw new Error("Failed to place order.");
+    } finally {
+        hideLoader();
+    }
+}
+
+export async function getOrders() {
+    showLoader("Loading your orders...");
+    try {
+        const user = auth.currentUser;
+
+        if (!user) {
+            throw new Error("Please login first.");
+        }
+
+        const ordersRef = collection(
+            db,
+            "users",
+            user.uid,
+            "orders"
+        );
+
+        const querySnapshot = await getDocs(ordersRef);
+
+        const orders = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        return orders;
+
+    } catch (error) {
+        console.error("Failed to get orders:", error);
+        throw new Error("Failed to load orders.");
+
+    } finally {
+        hideLoader();
+    }
+}
+
+
+export async function forgotPassword() {
+    const emailInput = document.getElementById("email");
+    const email = emailInput?.value?.trim();
+    if (!email) {
+        showAlert('Please enter your email address.', 'error', 2000);
+        return;
+    }
+
+    showLoader();
+
+    try {
+        await sendPasswordResetEmail(auth, email);
+        showAlert('Password reset email has been sent. Please check your inbox / spam folder.', 'success', 9000);
+    } catch (error) {
+        const msg = getAuthErrorMessage(error.code);
+        showAlert(msg, 'error', 2000);
+    } finally {
+        hideLoader();
+    }
+}
+
+
+window.forgotPassword = forgotPassword;
+window.getOrders = getOrders;
+window.saveOrder = saveOrder;
+window.decreaseCartQuantity = decreaseCartQuantity;
+window.removeFromCart = removeFromCart;
+window.createMandiLocation = createMandiLocation;
+window.addToCart = addToCart;
 window.registerUser = registerUser;
+window.getUserCart = getUserCart;
 window.registerFarmer = registerFarmer;
 window.loginUser = loginUser;
 window.logout = logout;
