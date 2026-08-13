@@ -6,7 +6,9 @@ let state = {
     isMenuOpen: false,
 };
 let alertTimer = null;
-
+let allProductCatList = []
+let allProducts = [];
+let userCart = [];
 
 const pageContent = document.getElementById('pageContent');
 const nav = document.getElementById('mainNav');
@@ -126,48 +128,102 @@ function renderView(view, callback) {
                     renderFarmerDashboard();
                 }
                 if (state.activeView === 'farmer_sell') {
-                    getMandiLocations().then((locations) => {
+                    Promise.all([
+                        getMandiLocations(),
+                        getProductPrice()
+                    ]).then(([locations, priceObj]) => {
+
                         const locationSelect = document.getElementById("farmer_city");
                         const blockSelect = document.getElementById("block_location");
                         const subLocationSelect = document.getElementById("mandi_location");
+                        const categorySelect = document.getElementById("category");
 
-                        // Check farmer cities
+                        // =========================
+                        // Product Categories
+                        // =========================
+
+                        if (priceObj?.length) {
+                            // Avoid nested array
+                            allProductCatList.push(...priceObj);
+
+                            categorySelect.innerHTML = priceObj
+                                .flatMap(item =>
+                                    Object.keys(item).filter(key => key !== "id")
+                                )
+                                .map(category =>
+                                    `<option value="${category}">${category}</option>`
+                                )
+                                .join("");
+                        } else {
+                            categorySelect.innerHTML =
+                                `<option value="">No categories available</option>`;
+                        }
+
+                        // =========================
+                        // Farmer Cities
+                        // =========================
+
                         if (locations?.length) {
+
                             locationSelect.innerHTML = locations
-                                .map(loc => `<option value="${loc.id}">${loc.name}</option>`)
+                                .map(loc =>
+                                    `<option value="${loc.id}">${loc.name}</option>`
+                                )
                                 .join("");
 
                             // Load first city data
                             getMandiLocationById(locations[0].id).then((location) => {
 
-                                // Check location
+                                // =========================
+                                // Rural Blocks
+                                // =========================
+
                                 if (location?.Rural_block?.length) {
 
-                                    // Load blocks
                                     blockSelect.innerHTML = location.Rural_block
-                                        .map(block => `<option value="${block}">${block}</option>`)
+                                        .map(block =>
+                                            `<option value="${block}">${block}</option>`
+                                        )
                                         .join("");
 
-                                    // Load sub-locations for first block
+                                    // =========================
+                                    // Sub Mandi Locations
+                                    // =========================
+
                                     getSubMandiLocations(location.Rural_block[0])
                                         .then((subLocations) => {
-                                            subLocationSelect.innerHTML = subLocations?.NAME?.length
-                                                ? subLocations.NAME
-                                                    .map(subLoc => `<option value="${subLoc}">${subLoc}</option>`)
-                                                    .join("")
-                                                : `<option value="">No sub-locations available</option>`;
+
+                                            if (subLocations?.NAME?.length) {
+
+                                                subLocationSelect.innerHTML =
+                                                    subLocations.NAME
+                                                        .map(subLoc =>
+                                                            `<option value="${subLoc}">${subLoc}</option>`
+                                                        )
+                                                        .join("");
+
+                                            } else {
+
+                                                subLocationSelect.innerHTML =
+                                                    `<option value="">No sub-locations available</option>`;
+
+                                            }
+
                                         });
 
                                 } else {
+
                                     blockSelect.innerHTML =
                                         `<option value="">No blocks available</option>`;
 
                                     subLocationSelect.innerHTML =
                                         `<option value="">No sub-locations available</option>`;
                                 }
+
                             });
 
                         } else {
+
                             locationSelect.innerHTML =
                                 `<option value="">No locations available</option>`;
 
@@ -177,7 +233,13 @@ function renderView(view, callback) {
                             subLocationSelect.innerHTML =
                                 `<option value="">No sub-locations available</option>`;
                         }
+
+                    }).catch((error) => {
+
+                        console.error("Error loading data:", error);
+
                     });
+
                 }
                 if (state.activeView === 'products') {
                     renderAllProducts();
@@ -194,6 +256,7 @@ function renderView(view, callback) {
                 if (state.activeView === 'orders') {
                     renderOrders();
                 }
+
             }
         })
         .catch(() => {
@@ -429,9 +492,40 @@ async function addProduct() {
         description: document.getElementById("description").value,
         harvestDate: document.getElementById("harvestDate").value,
         location: document.getElementById("location").value,
-        image: document.getElementById("image").files?.[0]?.name || ""
+        // image: document.getElementById("image").files?.[0]?.name || "",
+        farmer_city: document.getElementById("farmer_city").value,
+        block_location: document.getElementById("block_location").value,
+        mandi_location: document.getElementById("mandi_location").value
     };
 
+    const fieldNames = {
+        name: "Product Name",
+        category: "Category",
+        price: "Price",
+        quantity: "Quantity",
+        unit: "Unit",
+        description: "Description",
+        harvestDate: "Harvest Date",
+        location: "Farm Location",
+        // image: "Product Image",
+        farmer_city: "City",
+        block_location: "Block Location",
+        mandi_location: "Mandi Location"
+    };
+
+    const missingFields = Object.entries(product)
+        .filter(([key, value]) => !value)
+        .map(([key]) => fieldNames[key]);
+
+    if (missingFields.length) {
+        showAlert(
+            `Please fill: ${missingFields.join(", ")}`,
+            "error"
+        );
+        return;
+    }
+
+    showLoader();
     try {
         const productId = await window.addProductToFirestore(product);
         showAlert('Product added successfully', 'success', 2500);
@@ -440,6 +534,8 @@ async function addProduct() {
         }
     } catch (error) {
         showAlert(error.message || 'Could not add product. Please try again.', 'error', 2000);
+    } finally {
+        hideLoader();
     }
 }
 
@@ -714,7 +810,6 @@ async function renderMyCart() {
 
         const cart = await window.getUserCart();
 
-        console.log("User cart:", cart);
 
         state.cartCount = cart?.length || 0;
         updateHeader();
@@ -1093,9 +1188,6 @@ function getOrderStatusClass(status) {
     return "status-warning";
 }
 
-let allProducts = [];
-let userCart = [];
-
 function searchProducts(value) {
     const searchInput = document.getElementById("productSearch");
     const searchTerm = (value ?? searchInput?.value ?? "").trim().toLowerCase();
@@ -1148,8 +1240,8 @@ function renderProductCards(products) {
                             ${product.harvestDate || 'N/A'}
                         </p>
                     </div>
-                    <div class="product-image">
-                        <img src="${product?.image || 'assets/img2.jpg'}" alt="${product?.name || 'Product'}" onerror="this.src='assets/img2.jpg'">
+                    <div class="product-image"> 
+                        <img src="${mapProductImage(product.name)}" alt="${product?.name || 'Product'}" onerror="this.src='assets/img2.jpg'">
                     </div>
                 </div>
             </div>
@@ -1184,6 +1276,66 @@ async function renderAllProducts() {
         productsContainer.innerHTML = '<p>Unable to load products at this time.</p>';
     } finally {
         hideLoader();
+    }
+}
+
+function onProductSelect(select) {
+    const selectedCategory = select.value;
+    const productName = document.getElementById("productName");
+    const price = document.getElementById("price");
+
+    const productList = allProductCatList.flat();
+    const categoryObj = productList.find(item => item[selectedCategory]);
+
+    if (!categoryObj) {
+        productName.innerHTML = '<option value="">No products available</option>';
+        price.value = "";
+        return;
+    }
+
+    const products = categoryObj[selectedCategory];
+
+    productName.innerHTML = Object.entries(products)
+        .map(([product, productPrice]) => `
+            <option value="${product}" data-price="${productPrice}">
+                ${product}
+            </option>
+        `)
+        .join("");
+
+    // Set price for first product
+    const firstProduct = productName.options[0];
+
+    if (firstProduct) {
+        price.value = firstProduct.dataset.price;
+    }
+}
+
+function onProductNameSelect(select) {
+    const selectedOption = select.options[select.selectedIndex];
+    const price = document.getElementById("price");
+
+    price.value = selectedOption.dataset.price || "";
+}
+
+function mapProductImage(productName) {
+    switch (productName.toLowerCase()) {
+        case "cucumber":
+            return "assets/product_image/cucumber.webp";
+        case "onion":
+            return "assets/product_image/onion.webp";
+        case "tamato":
+            return "assets/product_image/tamato.webp";
+        case "milk":
+            return "assets/product_image/milk.webp";
+        case "banana":
+            return "assets/product_image/banana.webp";
+        case "carrot":
+            return "assets/product_image/carrot.webp";
+        case "gauva":
+            return "assets/product_image/gauva.webp";
+        default:
+            return "assets/img2.jpg";
     }
 }
 

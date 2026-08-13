@@ -7,7 +7,8 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    onAuthStateChanged, sendPasswordResetEmail
+    onAuthStateChanged,
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
 import {
@@ -20,9 +21,19 @@ import {
     serverTimestamp,
     doc,
     setDoc,
-    getDoc, updateDoc,
-    arrayUnion, deleteDoc
+    getDoc,
+    updateDoc,
+    arrayUnion,
+    deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-storage.js";
+
 
 // Firebase Config
 const firebaseConfig = {
@@ -76,9 +87,6 @@ export async function registerUser(event) {
     const form = document.getElementById("authForm");
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
-
-    console.log(data);
-
     // Basic client-side validation
     if (!data.email || !data.password) {
         showAlert('Please enter a valid email and password.', 'error', 2000);
@@ -98,7 +106,6 @@ export async function registerUser(event) {
             data.password
         );
         const user = userCredential.user;
-        console.log("Registered:", user);
         // 2. Save additional user information in Firestore
 
         await setDoc(doc(db, "users", user.uid), {
@@ -236,6 +243,10 @@ export async function loginUser(event, role) {
         name = user.userData.name || "";
         console.log("Logged in as:", name);
         showAlert('Login successful. Hello, ' + name + '!', 'success', 3000);
+        let userNamePlaceholder = document.getElementById("userID_firebase");
+        if (userNamePlaceholder) {
+            userNamePlaceholder.innerHTML = `Hello ${name}`
+        }
         return user;
     } catch (error) {
         console.error('Login failed', error);
@@ -251,8 +262,11 @@ export async function loginUser(event, role) {
 export async function logout() {
     try {
         await signOut(auth);
-        console.log("Logged Out");
         localStorage.removeItem('currentUser');
+        let userNamePlaceholder = document.getElementById("userID_firebase");
+        if (userNamePlaceholder) {
+            userNamePlaceholder.innerHTML = ``;
+        }
     } catch (error) {
         console.error(error);
     }
@@ -263,11 +277,11 @@ export async function logout() {
 // ======================
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        console.log("User Logged In");
-        console.log("UID:", user.uid);
-        console.log("Email:", user.email);
+        // console.log("User Logged In");
+        // console.log("UID:", user.uid);
+        // console.log("Email:", user.email);
     } else {
-        console.log("No User Logged In");
+        // console.log("No User Logged In");
     }
 });
 
@@ -512,9 +526,6 @@ export async function createMandiLocation(name, district, state) {
             state,
             createdAt: new Date(),
         });
-
-        console.log("Mandi created with ID:", docRef.id);
-
         return {
             id: docRef.id,
             name,
@@ -528,8 +539,6 @@ export async function createMandiLocation(name, district, state) {
 }
 
 export async function addToCart(productId) {
-    console.log("Adding product to cart:", productId);
-
     const user = auth.currentUser;
 
     if (!user) {
@@ -607,8 +616,6 @@ export async function addToCart(productId) {
     }
 }
 export async function decreaseCartQuantity(productId) {
-    console.log("Decreasing product quantity:", productId);
-
     const user = auth.currentUser;
 
     if (!user) {
@@ -705,7 +712,6 @@ export async function getUserCart() {
 
     // User is not logged in
     if (!user) {
-        console.log("No logged-in user");
         return [];
     }
 
@@ -721,7 +727,6 @@ export async function getUserCart() {
 
         // User document does not exist
         if (!userSnap.exists()) {
-            console.log("User document does not exist");
             return [];
         }
 
@@ -827,6 +832,44 @@ export async function forgotPassword() {
     }
 }
 
+export async function getProductPrice() {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error("You must be logged in.");
+    }
+
+    showLoader();
+
+    try {
+
+
+        const querySnapshot = await getDocs(collection(db, "Product_price"));
+
+        return querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+
+
+
+
+
+
+
+
+
+
+
+
+    } catch (error) {
+        const msg = getAuthErrorMessage(error.code);
+        showAlert(msg, 'error', 2000);
+    } finally {
+        hideLoader();
+    }
+}
+
 
 window.forgotPassword = forgotPassword;
 window.getOrders = getOrders;
@@ -848,3 +891,4 @@ window.getMandiLocationById = getMandiLocationById;
 window.getSubMandiLocations = getSubMandiLocations;
 window.deleteFarmerProduct = deleteFarmerProduct;
 window.updateFarmerProduct = updateFarmerProduct;
+window.getProductPrice = getProductPrice;
